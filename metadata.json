@@ -1,0 +1,6 @@
+{
+  "name": "Casas do Beco",
+  "description": "A minimalist and elegant website for a rural tourism hosting company.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
