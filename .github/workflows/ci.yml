@@ -1,0 +1,42 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    name: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: casas_test
+          POSTGRES_PASSWORD: ci_only_not_a_real_password
+          POSTGRES_DB: casas_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U casas_test -d casas_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Configure disposable test environment
+        run: |
+          cat > .env.local <<'ENV'
+          DATABASE_URL=postgres://casas_test:ci_only_not_a_real_password@localhost:5432/casas_test
+          PUBLIC_SITE_URL=http://localhost:3004
+          BETTER_AUTH_SECRET=ci-only-auth-secret-for-disposable-tests-000000
+          BOOKINGS_ENABLED=false
+          ENV
+      - run: npm run lint
+      - run: node --env-file=.env.local --import tsx --test tests/*.test.ts
+      - run: npm run build

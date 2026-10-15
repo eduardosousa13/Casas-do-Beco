@@ -1,6 +1,6 @@
 # Casas do Beco
 
-Stack: React 19, TypeScript, Vite/Tailwind/Motion no frontend; servidor HTTP Node.js, PostgreSQL, Better Auth, Stripe e Nodemailer no backend. O mesmo servidor apresenta o site e o admin e encaminha as APIs. O worker do PMS executa separadamente.
+Stack: React 19, TypeScript, Vite/Tailwind/Motion no frontend; servidor HTTP Node.js, PostgreSQL, Better Auth, Stripe e Nodemailer no backend. O mesmo servidor apresenta o site e o admin e encaminha as APIs. No alojamento, o worker pode correr no mesmo processo com `PMS_WORKER_ENABLED=true`; localmente também existe CLI separado.
 
 ## Executar localmente
 
@@ -33,7 +33,7 @@ Configure `PUBLIC_SITE_URL=https://casasdobeco.com`, `DATABASE_URL` e segredos n
 
 O ficheiro de ambiente é ignorado pelo Git. Nunca incluir credenciais em `VITE_*`: essas variáveis podem ir para o browser. Não publicar chaves, backups, dados de hóspedes ou segredos de segundo fator.
 
-Execute web e `npm run pms:worker` como processos separados supervisionados quando forem necessários. Nesta transição não foram publicados código, domínio ou serviços Railway. Reservas reais permanecem desativadas até ensaios com fornecedor, regras e operação concluídos.
+No Railway, ative o worker integrado com `PMS_WORKER_ENABLED=true`; não execute outro worker em paralelo. Ver [publicação e manutenção](docs/DEPLOY-RAILWAY.md). Reservas reais permanecem desativadas até ensaios com fornecedor, regras e operação concluídos.
 
 ## Contactos
 
@@ -48,7 +48,7 @@ O formulário usa `/api/contact` e só confirma depois da aceitação SMTP. Sem 
 - `pms/`: motor, autenticação, pagamentos, filas, CLI e migrações.
 - `scripts/build.mjs`: empacotamento do servidor e cópia dos assets.
 
-Site público continua a renderizar com React no browser; pré-renderização/SEO completo não foi acrescentado nesta mudança. PT/EN público completo, seletor de crianças/bebés, ensaios Stripe sandbox e Telegram/monitorização continuam pendências já identificadas.
+Site público continua a renderizar com React no browser; pré-renderização/SEO completo não foi acrescentado nesta mudança. PT/EN público completo, seletor de crianças/bebés, ensaios Stripe sandbox e entrega Telegram/monitorização continuam pendências já identificadas. A fila de eventos para alertas está preparada; ver [ativação futura](docs/pms/ALERTAS-TELEGRAM.md).
 
 ## Verificações
 

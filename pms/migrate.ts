@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { database } from './db';
 
-const files = ['001_initial.sql', '002_refund_history.sql', '003_admin_auth.sql', '004_admin_configuration.sql', '005_auth_email.sql', '006_room_details.sql', '009_owner_operations.sql', '010_checkout_recovery.sql'];
+const files = ['001_initial.sql', '002_refund_history.sql', '003_admin_auth.sql', '004_admin_configuration.sql', '005_auth_email.sql', '006_room_details.sql', '009_owner_operations.sql', '010_checkout_recovery.sql', '011_alert_outbox.sql'];
 const db = database();
 const client = await db.connect();
 try {

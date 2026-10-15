@@ -3,14 +3,17 @@ import { database,transaction } from './db';
 import { paymentServiceConfigured,processPaymentCommand,reconcileCheckout,reconcilePayment,recoverInitialCheckout } from './payment-worker';
 import { deliverReservationEmail,sendReservationEmail } from './reservation-email';
 import { deliverRecoveryEmail,sendRecoveryEmail,recoveryMailConfigured } from './auth-email';
-let stopped=false;
-process.on('SIGINT',()=>{stopped=true;});process.on('SIGTERM',()=>{stopped=true;});
-let lastReconcile=0;
+export async function runWorker(signal:AbortSignal,once=false){
+let lastReconcile=0,lastCleanup=0;
 try {
   do {
     try {
       await database().query("INSERT INTO worker_health(id,last_seen) VALUES('operations',now()) ON CONFLICT(id) DO UPDATE SET last_seen=now()");
-      await database().query("DELETE FROM public_request_limits WHERE window_start<now()-interval '1 day'");
+      if(Date.now()-lastCleanup>3600000){
+        await database().query("DELETE FROM public_request_limits WHERE window_start<now()-interval '1 day'");
+        await database().query("DELETE FROM alert_events WHERE created_at<now()-interval '30 days'");
+        lastCleanup=Date.now();
+      }
       if(recoveryMailConfigured()) {
         await transaction(db=>deliverRecoveryEmail(db,sendRecoveryEmail));
         await transaction(db=>deliverReservationEmail(db,sendReservationEmail));
@@ -27,7 +30,8 @@ try {
         }
       }
     } catch {process.stderr.write('Tarefa não concluída; nova tentativa no próximo ciclo.\n');}
-    if(process.argv.includes('--once')) break;
-    if(!stopped) await setTimeout(10000);
-  }while(!stopped);
-}finally{await database().end();}
+    if(once||signal.aborted) break;
+    try{await setTimeout(30000,undefined,{signal});}catch{break;}
+  }while(!signal.aborted);
+}finally{/* The caller owns the shared database pool. */}
+}

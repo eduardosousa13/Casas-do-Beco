@@ -19,7 +19,7 @@
     "pms:mail": "node --env-file=.env.local --import tsx pms/mail-worker.ts",
     "test:admin": "node --import tsx --test tests/admin-configuration.test.ts tests/admin-activity.test.ts tests/auth-email.test.ts",
     "test:admin:postgres": "node --env-file=.env.local --import tsx --test tests/admin-auth-postgres.test.ts",
-    "pms:worker": "node --env-file=.env.local --import tsx pms/worker.ts",
+    "pms:worker": "node --env-file=.env.local --import tsx pms/worker-cli.ts",
     "test:owner": "node --import tsx --test tests/owner.test.ts",
     "test:owner:postgres": "node --env-file=.env.local --import tsx --test tests/owner-postgres.test.ts",
     "start": "node dist/server/index.mjs",
