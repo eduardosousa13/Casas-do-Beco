@@ -40,6 +40,8 @@ test('PostgreSQL prevents simultaneous reservations of one room', async () => {
     const nights = await db.query<{ count: number }>(
       'SELECT count(*)::int AS count FROM inventory_nights WHERE room_id = $1', [roomId]);
     assert.equal(nights.rows[0].count, 2);
+    assert.doesNotThrow(()=>db.emit('error',new Error('simulated private connection details')));
+    assert.equal((await db.query('SELECT 1 AS connected')).rows[0].connected,1);
   } finally {
     await db.end();
     await control.query(`DROP SCHEMA ${schema} CASCADE`);await control.end();

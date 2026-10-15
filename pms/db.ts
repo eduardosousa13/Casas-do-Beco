@@ -11,6 +11,9 @@ export function database(): pg.Pool {
   if (!connectionString) throw new Error('DATABASE_URL is not configured');
   if (!pool) {
     pool = new pg.Pool({ connectionString, max: 5, idleTimeoutMillis: 30_000, connectionTimeoutMillis: 5000, statement_timeout: 15000, ...(process.env.DATABASE_SSL_CA ? {ssl:{ca:process.env.DATABASE_SSL_CA,rejectUnauthorized:true}} : {}) });
+    // pg emits idle-client errors outside query promises. Keep the process alive
+    // so the pool can reconnect and the worker can report database failures.
+    pool.on('error', () => process.stderr.write('Ligação inativa à base interrompida; aguarda reconexão.\n'));
   }
   return pool;
 }
