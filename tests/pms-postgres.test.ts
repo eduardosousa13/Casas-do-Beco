@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { test } from 'node:test';
+import {readFile,readdir} from 'node:fs/promises';
+import pg from 'pg';
 import { createPendingReservation } from '../pms/core';
 import { database, transaction } from '../pms/db';
 
@@ -8,8 +10,15 @@ test('PostgreSQL prevents simultaneous reservations of one room', async () => {
   const houseId = randomUUID();
   const roomId = randomUUID();
   const slug = `test-${houseId.slice(0, 8)}`;
+  const original=process.env.DATABASE_URL!;
+  const url=new URL(original);assert.ok(['localhost','127.0.0.1'].includes(url.hostname));
+  const schema='pms_test_'+randomUUID().replaceAll('-','');
+  const control=new pg.Pool({connectionString:original});await control.query(`CREATE SCHEMA ${schema}`);
+  url.searchParams.set('options',`-c search_path=${schema}`);process.env.DATABASE_URL=url.href;
   const db = database();
   try {
+    const dir=new URL('../pms/migrations/',import.meta.url);
+    for(const file of(await readdir(dir)).filter(f=>f.endsWith('.sql')).sort())await db.query(await readFile(new URL(file,dir),'utf8'));
     await db.query(`INSERT INTO houses (id, slug, name, status)
       VALUES ($1,$2,'Integration test house','active')`, [houseId, slug]);
     await db.query(`INSERT INTO rooms (id, house_id, slug, name, status, max_adults, max_occupancy)
@@ -32,11 +41,8 @@ test('PostgreSQL prevents simultaneous reservations of one room', async () => {
       'SELECT count(*)::int AS count FROM inventory_nights WHERE room_id = $1', [roomId]);
     assert.equal(nights.rows[0].count, 2);
   } finally {
-    await db.query('DELETE FROM inventory_nights WHERE room_id = $1', [roomId]);
-    await db.query('DELETE FROM reservations WHERE room_id = $1', [roomId]);
-    await db.query('DELETE FROM nightly_rates WHERE room_id = $1', [roomId]);
-    await db.query('DELETE FROM rooms WHERE id = $1', [roomId]);
-    await db.query('DELETE FROM houses WHERE id = $1', [houseId]);
     await db.end();
+    await control.query(`DROP SCHEMA ${schema} CASCADE`);await control.end();
+    process.env.DATABASE_URL=original;
   }
 });
