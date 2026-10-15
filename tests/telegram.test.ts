@@ -9,6 +9,8 @@ const config:TelegramConfig={token:'123456789:test_token_not_real_000000000',cha
 test('Telegram requires explicit activation, fixed group and watermark; secrets remain server-side',()=>{
  const env={TELEGRAM_ALERTS_ENABLED:'true',TELEGRAM_BOT_TOKEN:config.token,TELEGRAM_CHAT_ID:config.chatId,TELEGRAM_ALERTS_FROM:config.from.toISOString(),PUBLIC_SITE_URL:config.site,NODE_ENV:'production'};
  assert.ok(telegramConfig(env));
+ assert.equal(telegramConfig({...env,TELEGRAM_TECH_CHAT_ID:env.TELEGRAM_CHAT_ID},'technical'),null);
+ assert.equal(telegramConfig({...env,TELEGRAM_TECH_CHAT_ID:'-987654321'},'technical')?.destination,'technical');
  for(const patch of [{TELEGRAM_ALERTS_ENABLED:'false'},{TELEGRAM_CHAT_ID:'123'},{TELEGRAM_CHAT_ID:'@someone'},{TELEGRAM_ALERTS_FROM:''},{TELEGRAM_BOT_TOKEN:''},{TELEGRAM_THREAD_ID:'-1'},{PUBLIC_SITE_URL:'http://insecure.example'},{PUBLIC_SITE_URL:'https://secret:pass@example.com'}])assert.equal(telegramConfig({...env,...patch}),null);
 });
 test('Telegram handles timeout, rate limits, permanent errors and migration without exposing provider details',async()=>{
@@ -28,8 +30,8 @@ const db=new PGlite();
 before(async()=>{const dir=new URL('../pms/migrations/',import.meta.url);for(const file of(await readdir(dir)).filter(f=>f.endsWith('.sql')).sort())await db.exec(await readFile(new URL(file,dir),'utf8'));});
 after(()=>db.close());
 beforeEach(async()=>{await db.exec('TRUNCATE alert_events,alert_delivery_channels');});
-async function event(state='test',kind='system',entity='system',date='2026-10-15Z'){
- return(await db.query<AlertEvent>("INSERT INTO alert_events(kind,entity_type,entity_id,state,created_at) VALUES($1,$2,$3,$4,$5) RETURNING *",[kind,entity,randomUUID(),state,date])).rows[0];
+async function event(state='test',kind='system',entity='system',date='2026-10-15Z',destination='operations'){
+ return(await db.query<AlertEvent>("INSERT INTO alert_events(kind,entity_type,entity_id,state,created_at,destination) VALUES($1,$2,$3,$4,$5,$6) RETURNING *",[kind,entity,randomUUID(),state,date,destination])).rows[0];
 }
 async function unlock(){await db.exec("UPDATE alert_delivery_channels SET next_attempt_at=now()-interval '1 minute';UPDATE alert_events SET available_at=now()-interval '1 minute'");}
 test('outbox skips history/noisy states, batches at most ten and records delivery without guest payloads',async()=>{
@@ -55,4 +57,19 @@ test('forbidden group pauses channel, never chooses a new destination; explicit 
  await event();await deliverAlerts(db,config,async()=>({ok:false,code:'forbidden',permanent:true}));let calls=0;
  await unlock();await deliverAlerts(db,config,async()=>{calls++;return{ok:true};});assert.equal(calls,0);assert.equal((await db.query<{blocked_reason:string}>('SELECT blocked_reason FROM alert_delivery_channels')).rows[0].blocked_reason,'forbidden');
  await db.exec('UPDATE alert_delivery_channels SET blocked_reason=NULL');await deliverAlerts(db,config,async()=>{calls++;return{ok:true};});assert.equal(calls,1);
+});
+test('technical and operational queues have separate destinations, content and leases',async()=>{
+ await event('confirmed','reservation','reservations');
+ await event('failed','reservation_email','reservation_emails','2026-10-15Z','technical');
+ await event('failed','reservation_email','reservation_emails'); // Misrouted rows are filtered, not leaked.
+ const operations:string[]=[],technical:string[]=[];
+ await Promise.all([
+  deliverAlerts(db,config,async text=>{operations.push(text);return{ok:true};}),
+  deliverAlerts(db,{...config,destination:'technical',chatId:'-987654321'},async text=>{technical.push(text);return{ok:true};}),
+ ]);
+ assert.equal(operations.length,1);assert.equal(technical.length,1);
+ assert.ok(operations[0].includes('OPERAÇÕES'));assert.ok(operations[0].includes('Reserva'));assert.ok(!operations[0].includes('Email'));
+ assert.ok(technical[0].includes('TÉCNICO'));assert.ok(technical[0].includes('Email'));assert.ok(!technical[0].includes('Reserva'));
+ assert.equal((await db.query('SELECT * FROM alert_delivery_channels')).rows.length,2);
+ assert.equal((await db.query("SELECT * FROM alert_events WHERE delivery_status='skipped'")).rows.length,1);
 });

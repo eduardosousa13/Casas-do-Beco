@@ -5,7 +5,7 @@ import {before,after,test} from 'node:test';
 import {PGlite} from '@electric-sql/pglite';
 import {readiness} from '../server/health';
 const db=new PGlite();
-before(async()=>{const dir=new URL('../pms/migrations/',import.meta.url);for(const file of(await readdir(dir)).filter(f=>f.endsWith('.sql')).sort())await db.exec(await readFile(new URL(file,dir),'utf8'));await db.exec('INSERT INTO pms_migrations(version) VALUES(12)');});
+before(async()=>{const dir=new URL('../pms/migrations/',import.meta.url);for(const file of(await readdir(dir)).filter(f=>f.endsWith('.sql')).sort())await db.exec(await readFile(new URL(file,dir),'utf8'));await db.exec('INSERT INTO pms_migrations(version) VALUES(13)');});
 after(()=>db.close());
 test('readiness refuses missing worker and database failures without leaking details',async()=>{
  assert.equal((await readiness(db,false)).status,200);
