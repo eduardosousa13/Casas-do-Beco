@@ -160,9 +160,7 @@ export default function OndeEstamos() {
       {/* Scroll-Driven Animations Container */}
       <div 
         ref={containerRef}
-        className={`relative w-full ${
-          loading ? "h-screen overflow-hidden" : "h-[450vh]"
-        }`}
+        className="relative w-full h-[450vh]"
       >
 
       {/* 2. Sticky Viewport Wrapper */}
@@ -612,7 +610,7 @@ export default function OndeEstamos() {
                 <span className="text-[8.5px] font-sans font-bold uppercase tracking-widest text-[#7c5d43] block">Capítulo I • Solo</span>
                 <h3 className="text-xl font-serif text-[#3d2715]">O Ladoeiro & As Raízes</h3>
                 <p className="text-[#3a2c20] text-xs leading-relaxed font-serif font-light">
-                  Luzindo no coração da Beira Baixa, o Ladoeiro estende-se por planícies férteis de beleza agreste and generosa. O seu microclima e a dedicação das suas gentes moldaram uma identidade única, esculpida através de séculos de labuta e forte convívio comunitário.
+                  Luzindo no coração da Beira Baixa, o Ladoeiro estende-se por planícies férteis de beleza agreste e generosa. O seu microclima e a dedicação das suas gentes moldaram uma identidade única, esculpida através de séculos de labuta e forte convívio comunitário.
                 </p>
               </motion.div>
 
@@ -628,7 +626,7 @@ export default function OndeEstamos() {
                   className="w-full h-36 object-cover rounded shadow"
                 />
                 <p className="text-[#3a2c20] text-xs leading-relaxed font-serif font-light">
-                  Cravada na serenidade dos campos, a Capela de Santa Catarina de Sena ergue-se como um farol de faith inabalável. Com uma arquitetura rústica e pedra talhada localmente, serve há séculos como porto de abrigo espiritual das gentes beirãs.
+                  Cravada na serenidade dos campos, a Capela de Santa Catarina de Sena ergue-se como um farol de fé inabalável. Com uma arquitetura rústica e pedra talhada localmente, serve há séculos como porto de abrigo espiritual das gentes beirãs.
                 </p>
               </motion.div>
 

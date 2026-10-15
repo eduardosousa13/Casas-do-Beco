@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Estado da reserva — Casas do Beco</title>
+    <style>
+      body { min-height: 100vh; margin: 0; display: grid; place-items: center; background: #0a0604; color: #eee6de; font-family: Arial, sans-serif; }
+      main { max-width: 32rem; padding: 3rem 1.5rem; text-align: center; }
+      h1 { font-family: Georgia, serif; font-weight: normal; font-size: 2.2rem; }
+      p { line-height: 1.7; color: #b8aaa0; }
+      a { color: #d4b098; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Estado da reserva</h1>
+      <p id="status" role="status">A verificar o pagamento e a reserva...</p>
+      <a href="/">Voltar ao início</a>
+    </main>
+    <script type="module">
+      const params=new URLSearchParams(location.search);
+      const id=params.get('id'),command=params.get('command');
+      const status = document.getElementById('status');
+      if (!id) {
+        status.textContent = 'Falta a referência da reserva.';
+      } else {
+        let attempts = 0;
+        const check = async () => {
+          try {
+            const response = await fetch(`/api/pms/status?id=${encodeURIComponent(id)}${command?'&command='+encodeURIComponent(command):''}`, { cache: 'no-store' });
+            const data = await response.json();
+            if (!response.ok) throw new Error('Não foi possível verificar a reserva.');
+            if(command){
+              if(data.paymentStatus==='succeeded')status.textContent='Este pagamento foi confirmado. Obrigado.';
+              else if(['failed','expired'].includes(data.paymentStatus))status.textContent='Este pedido de pagamento não foi concluído. A reserva existente não foi cancelada. Contacte o alojamento.';
+              else if(data.paymentStatus==='review')status.textContent='Este pagamento precisa de verificação. Contacte o alojamento.';
+              else if(++attempts<12){status.textContent='Este pagamento ainda está a ser verificado...';setTimeout(check,2500);}
+              else status.textContent='A confirmação deste pagamento ainda está pendente. Volte a verificar dentro de alguns minutos.';
+              return;
+            }
+            if (['confirmed', 'checked_in', 'checked_out'].includes(data.status)) {
+              status.textContent = 'A sua reserva está confirmada. Consulte a confirmação para os detalhes do pagamento.';
+            } else if (data.status === 'payment_review') {
+              status.textContent = 'O pagamento foi recebido, mas a reserva precisa de verificação. Contacte-nos e indique a referência apresentada na Stripe.';
+            } else if (data.status === 'expired' || data.status === 'cancelled') {
+              status.textContent = 'Esta reserva não está ativa. Se efetuou um pagamento, contacte-nos.';
+            } else if (++attempts < 12) {
+              status.textContent = 'O pagamento ainda está a ser verificado...';
+              setTimeout(check, 2500);
+            } else {
+              status.textContent = 'A confirmação ainda está pendente. Volte a verificar esta página dentro de alguns minutos.';
+            }
+          } catch {
+            status.textContent = 'Não foi possível verificar a reserva agora. Volte a tentar mais tarde.';
+          }
+        };
+        check();
+      }
+    </script>
+  </body>
+</html>

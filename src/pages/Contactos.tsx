@@ -14,6 +14,9 @@ export default function Contactos() {
   
   // Contact Form State
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [website, setWebsite] = useState('');
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -62,14 +65,28 @@ export default function Contactos() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nome || !formData.email || !formData.mensagem) {
-      alert('Por favor, preencha todos os campos obrigatórios (Nome, Email e Mensagem).');
-      return;
+    if (formSubmitting) return;
+    setFormSubmitting(true);
+    setFormError(null);
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, website }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || 'Não foi possível enviar a mensagem. Tenta novamente mais tarde.');
+      }
+      setFormSubmitted(true);
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : 'Não foi possível enviar a mensagem. Tenta novamente mais tarde.');
+    } finally {
+      setFormSubmitting(false);
     }
-    // Simulate API Submission
-    setFormSubmitted(true);
   };
 
   const menuItems = [
@@ -332,8 +349,8 @@ export default function Contactos() {
             {/* Channels Card List */}
             <div className="space-y-4">
               {/* Phone */}
-              <a 
-                href="tel:+351900000000" 
+              <a
+                href="tel:+351900000000"
                 className="flex items-center gap-5 p-5 border border-white/5 bg-white/[0.01] hover:border-[#d4b098]/30 hover:bg-white/[0.03] transition-all group"
               >
                 <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-[#d4b098] bg-black/60 group-hover:bg-[#d4b098] group-hover:text-black transition-all">
@@ -347,7 +364,7 @@ export default function Contactos() {
 
               {/* Email */}
               <a 
-                href="mailto:info@casasdoladoeiro.pt" 
+                href="mailto:casasdobecoladoeiro@gmail.com"
                 className="flex items-center gap-5 p-5 border border-white/5 bg-white/[0.01] hover:border-[#d4b098]/30 hover:bg-white/[0.03] transition-all group"
               >
                 <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-[#d4b098] bg-black/60 group-hover:bg-[#d4b098] group-hover:text-black transition-all">
@@ -355,7 +372,7 @@ export default function Contactos() {
                 </div>
                 <div>
                   <h4 className="font-serif text-base text-white font-light">Correio Eletrónico</h4>
-                  <p className="font-sans text-xs text-stone-400 mt-1 hover:text-[#d4b098] transition-colors">info@casasdoladoeiro.pt</p>
+                  <p className="font-sans text-xs text-stone-400 mt-1 hover:text-[#d4b098] transition-colors">casasdobecoladoeiro@gmail.com</p>
                 </div>
               </a>
 
@@ -447,7 +464,7 @@ export default function Contactos() {
                     <span className="text-[#d4b098] font-sans text-[8px] tracking-[0.3em] uppercase block">Correspondência</span>
                     <h3 className="font-serif text-2xl font-light text-white">Escreva a Sua Mensagem</h3>
                     <p className="text-stone-500 font-sans text-xs font-light leading-relaxed">
-                      Preencha o formulário abaixo e responderemos no espaço de 24 horas.
+                      Preencha o formulário abaixo e responderemos assim que possível.
                     </p>
                   </div>
 
@@ -527,12 +544,20 @@ export default function Contactos() {
                     />
                   </div>
 
+                  <div className="absolute -left-[9999px]" aria-hidden="true">
+                    <label htmlFor="contact-website">Website</label>
+                    <input id="contact-website" name="website" type="text" value={website} onChange={(event) => setWebsite(event.target.value)} tabIndex={-1} autoComplete="off" />
+                  </div>
+
+                  {formError && <p role="alert" className="text-sm text-red-300">{formError}</p>}
+
                   {/* Submit Button */}
                   <button 
                     type="submit"
-                    className="w-full py-4 bg-[#d4b098] hover:bg-white text-black font-sans text-xs tracking-[0.25em] uppercase font-bold transition-colors flex items-center justify-center gap-3 cursor-pointer group shadow-lg"
+                    disabled={formSubmitting}
+                    className="w-full py-4 bg-[#d4b098] hover:bg-white text-black font-sans text-xs tracking-[0.25em] uppercase font-bold transition-colors flex items-center justify-center gap-3 cursor-pointer group shadow-lg disabled:opacity-60 disabled:cursor-wait"
                   >
-                    <span>Enviar Mensagem</span>
+                    <span>{formSubmitting ? 'A enviar...' : 'Enviar Mensagem'}</span>
                     <Send size={12} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                   </button>
                 </motion.form>
@@ -550,13 +575,15 @@ export default function Contactos() {
                   <div className="space-y-2">
                     <h3 className="font-serif text-2xl text-white font-light">Mensagem Enviada!</h3>
                     <p className="text-stone-400 font-sans text-sm font-light max-w-sm leading-relaxed mx-auto">
-                      Agradecemos o seu contacto, <span className="text-[#d4b098] font-medium">{formData.nome}</span>. A nossa família já recebeu a sua correspondência e responderemos com todo o carinho e brevidade.
+                      Agradecemos o seu contacto, <span className="text-[#d4b098] font-medium">{formData.nome}</span>. A sua mensagem foi enviada e responderemos assim que possível.
                     </p>
                   </div>
                   <div className="w-12 h-[1px] bg-[#d4b098]/30" />
                   <button 
                     onClick={() => {
                       setFormSubmitted(false);
+                      setFormError(null);
+                      setWebsite('');
                       setFormData({ nome: '', email: '', telefone: '', casa: 'outra', mensagem: '' });
                     }}
                     className="text-stone-500 hover:text-white transition-colors font-sans text-[10px] tracking-widest uppercase border-b border-stone-800 hover:border-white pb-1 pt-2"

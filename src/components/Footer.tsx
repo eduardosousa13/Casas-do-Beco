@@ -32,11 +32,11 @@ export default function Footer() {
               </span>
               <span>+351 900 000 000</span>
             </a>
-            <a href="#" className="flex items-center gap-4 text-white/50 hover:text-[#d4b098] transition-colors duration-300 font-light text-sm w-fit group">
+            <a href="mailto:casasdobecoladoeiro@gmail.com" className="flex items-center gap-4 text-white/50 hover:text-[#d4b098] transition-colors duration-300 font-light text-sm w-fit group">
               <span className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#d4b098]/30 transition-colors">
                 <Mail size={14} />
               </span>
-              <span>info@casasdoladoeiro.pt</span>
+              <span>casasdobecoladoeiro@gmail.com</span>
             </a>
             <div className="flex items-start gap-4 text-white/50 font-light text-sm group">
               <span className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center flex-shrink-0">

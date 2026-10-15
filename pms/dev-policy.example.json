@@ -1,0 +1,8 @@
+{
+  "version": "development-example-1",
+  "terms_pt": "EXEMPLO DE DESENVOLVIMENTO: condições de estadia por confirmar. Não ativar pagamentos reais com este texto.",
+  "terms_en": "DEVELOPMENT EXAMPLE: stay terms still to be confirmed. Do not activate real payments with this text.",
+  "cancellation_pt": "EXEMPLO DE DESENVOLVIMENTO: condições de cancelamento por decidir. Não ativar pagamentos reais com este texto.",
+  "cancellation_en": "DEVELOPMENT EXAMPLE: cancellation conditions still to be decided. Do not activate real payments with this text.",
+  "privacy_url": "http://localhost:3000/privacidade"
+}

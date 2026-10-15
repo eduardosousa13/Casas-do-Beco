@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: casas_do_beco
+      POSTGRES_USER: casas_dev
+      POSTGRES_PASSWORD: change_this_for_local_dev
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pms_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U casas_dev -d casas_do_beco"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pms_postgres_data:

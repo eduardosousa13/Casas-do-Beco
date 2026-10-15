@@ -4,7 +4,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Compass, Wifi, Coffee, MapPin, 
   Tv, Sparkles, Shield, User, BedDouble, Bath, 
-  Flame, Utensils, Maximize, Calendar, ArrowRight, CheckCircle2, ChevronRight 
+  Flame, Utensils, Maximize, Calendar, ArrowRight, ChevronRight
 } from 'lucide-react';
 import Footer from '../components/Footer';
 
@@ -34,6 +34,15 @@ interface HouseData {
   accentColor: string;
   gallery: string[];
   rooms: Room[];
+}
+
+interface BookableRoom { id: string; name: string; max_occupancy: number; max_adults: number }
+interface BookingQuote {
+  roomId: string; checkIn: string; checkOut: string; adults: number; children: number;
+  nights: number; accommodationCents: number; paymentDueCents: number;
+  bookingsEnabled: boolean;
+  paymentPolicy: 'full' | 'deposit' | 'pay_later'; depositPercent: number | null;
+  policy: { version: string; terms: string; cancellation: string; privacyUrl: string };
 }
 
 const housesData: Record<'nascente' | 'poente', HouseData> = {
@@ -167,7 +176,17 @@ export default function CasaDetail() {
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState('2');
-  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [bookableRooms, setBookableRooms] = useState<BookableRoom[]>([]);
+  const [bookableRoomId, setBookableRoomId] = useState('');
+  const [bookingQuote, setBookingQuote] = useState<BookingQuote | null>(null);
+  const [bookingError, setBookingError] = useState('');
+  const [bookingBusy, setBookingBusy] = useState(false);
+  const [guestName, setGuestName] = useState('');
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
+  const bookingRequest = useRef<AbortController | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Force video playback when loading completes
@@ -195,6 +214,30 @@ export default function CasaDetail() {
     return () => clearTimeout(timer);
   }, [activeId]);
 
+  useEffect(() => {
+    bookingRequest.current?.abort();
+    setBookingBusy(false);
+    setTermsAccepted(false);
+    setPrivacyAcknowledged(false);
+    setBookableRooms([]);
+    setBookableRoomId('');
+    setBookingQuote(null);
+    setBookingError('');
+    let cancelled = false;
+    fetch(`/api/pms/rooms?house=${activeId}`)
+      .then(async response => response.ok ? response.json() : null)
+      .then(data => {
+        if (cancelled || !data?.rooms) return;
+        setBookableRooms(data.rooms);
+        if (data.rooms.length === 1) {
+          setBookableRoomId(data.rooms[0].id);
+          setGuests(current => String(Math.min(Number(current), data.rooms[0].max_adults, data.rooms[0].max_occupancy)));
+        }
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; bookingRequest.current?.abort(); };
+  }, [activeId]);
+
   // Handle Switching between houses
   const handleHouseSwitch = (newId: 'nascente' | 'poente') => {
     if (newId !== activeId) {
@@ -202,10 +245,72 @@ export default function CasaDetail() {
     }
   };
 
-  const handleReservationSubmit = (e: React.FormEvent) => {
+  const checkoutRequest = useRef<{signature:string;key:string}|null>(null);
+  const handleReservationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!checkIn || !checkOut) return;
-    setFormSubmitted(true);
+    setBookingError('');
+    if (!bookableRoomId) {
+      setBookingError('Os quartos desta casa ainda não estão configurados para reserva online.');
+      return;
+    }
+    if (checkOut <= checkIn) {
+      setBookingError('A data de saída tem de ser posterior à data de entrada.');
+      return;
+    }
+    if (bookingBusy) return;
+    const controller = new AbortController();
+    bookingRequest.current = controller;
+    setBookingBusy(true);
+    try {
+      const response = await fetch('/api/pms/quote', {
+        method: 'POST', signal: controller.signal, headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stay: { roomId: bookableRoomId, checkIn, checkOut,
+          adults: Number(guests), children: 0 }, locale: 'pt' }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Não foi possível consultar estas datas.');
+      if (controller.signal.aborted) return;
+      setTermsAccepted(false);
+      setPrivacyAcknowledged(false);
+      setBookingQuote(result.quote);
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      setBookingError(error instanceof Error ? error.message : 'Não foi possível consultar estas datas.');
+    } finally {
+      if (!controller.signal.aborted) setBookingBusy(false);
+    }
+  };
+
+  const handleCheckout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bookingQuote) return;
+    if (bookingBusy) return;
+    const controller = new AbortController();
+    bookingRequest.current = controller;
+    setBookingBusy(true);
+    setBookingError('');
+    try {
+      const signature=JSON.stringify({bookingQuote,guestName,guestEmail,guestPhone});
+      if(checkoutRequest.current?.signature!==signature) checkoutRequest.current={signature,key:crypto.randomUUID()};
+      const response = await fetch('/api/pms/checkout', {
+        method: 'POST', signal: controller.signal, headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requestKey:checkoutRequest.current!.key,
+          stay: { roomId: bookingQuote.roomId, checkIn: bookingQuote.checkIn,
+            checkOut: bookingQuote.checkOut, adults: bookingQuote.adults, children: 0 },
+          guest: { name: guestName, email: guestEmail, phone: guestPhone, locale: 'pt' },
+          policyVersion: bookingQuote.policy.version, termsAccepted, privacyAcknowledged,
+          expectedQuote: bookingQuote,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Não foi possível iniciar o pagamento.');
+      if (!controller.signal.aborted) window.location.assign(result.checkoutUrl);
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      setBookingError(error instanceof Error ? error.message : 'Não foi possível iniciar o pagamento.');
+      setBookingBusy(false);
+    }
   };
 
   return (
@@ -444,16 +549,30 @@ export default function CasaDetail() {
               <h3 className="text-white font-serif text-2xl font-light mb-2">Solicitar Estadia</h3>
               <p className="text-stone-500 font-sans text-xs mb-8">Consulte a disponibilidade da {house.title}.</p>
 
-              {!formSubmitted ? (
+              {!bookingQuote ? (
                 <form onSubmit={handleReservationSubmit} className="space-y-6">
+                  {bookableRooms.length > 1 && (
+                    <div className="space-y-2">
+                      <label className="text-stone-400 font-sans text-[10px] uppercase tracking-wider block" htmlFor="bookable-room">Quarto</label>
+                      <select id="bookable-room" disabled={bookingBusy} required value={bookableRoomId} onChange={e => {
+                        setBookableRoomId(e.target.value);
+                        const room = bookableRooms.find(item => item.id === e.target.value);
+                        if (room && Number(guests) > room.max_adults) setGuests('1');
+                      }}
+                        className="w-full bg-black/40 border border-white/10 text-white p-4 font-sans text-xs focus:border-[#d4b098] outline-none">
+                        <option value="">Escolha um quarto</option>
+                        {bookableRooms.map(room => <option key={room.id} value={room.id}>{room.name}</option>)}
+                      </select>
+                    </div>
+                  )}
                   {/* Check-In */}
                   <div className="space-y-2">
-                    <label className="text-stone-400 font-sans text-[10px] uppercase tracking-wider block">Data de Entrada</label>
+                    <label className="text-stone-400 font-sans text-[10px] uppercase tracking-wider block" htmlFor="booking-checkin">Data de Entrada</label>
                     <div className="relative">
                       <input 
                         type="date" 
                         required
-                        value={checkIn}
+                        id="booking-checkin" disabled={bookingBusy} value={checkIn}
                         onChange={(e) => setCheckIn(e.target.value)}
                         className="w-full bg-black/40 border border-white/10 text-white p-4 font-sans text-xs focus:border-[#d4b098] outline-none transition-all cursor-pointer"
                       />
@@ -462,12 +581,12 @@ export default function CasaDetail() {
 
                   {/* Check-Out */}
                   <div className="space-y-2">
-                    <label className="text-stone-400 font-sans text-[10px] uppercase tracking-wider block">Data de Saída</label>
+                    <label className="text-stone-400 font-sans text-[10px] uppercase tracking-wider block" htmlFor="booking-checkout">Data de Saída</label>
                     <div className="relative">
                       <input 
                         type="date" 
                         required
-                        value={checkOut}
+                        id="booking-checkout" disabled={bookingBusy} value={checkOut}
                         onChange={(e) => setCheckOut(e.target.value)}
                         className="w-full bg-black/40 border border-white/10 text-white p-4 font-sans text-xs focus:border-[#d4b098] outline-none transition-all cursor-pointer"
                       />
@@ -476,61 +595,70 @@ export default function CasaDetail() {
 
                   {/* Guests */}
                   <div className="space-y-2">
-                    <label className="text-stone-400 font-sans text-[10px] uppercase tracking-wider block">Hóspedes</label>
+                    <label className="text-stone-400 font-sans text-[10px] uppercase tracking-wider block" htmlFor="booking-guests">Hóspedes</label>
                     <select 
-                      value={guests}
+                      id="booking-guests" disabled={bookingBusy} value={guests}
                       onChange={(e) => setGuests(e.target.value)}
                       className="w-full bg-black/40 border border-white/10 text-white p-4 font-sans text-xs focus:border-[#d4b098] outline-none transition-all cursor-pointer"
                     >
                       <option value="1">1 Hóspede</option>
-                      <option value="2">2 Hóspedes</option>
-                      <option value="3">3 Hóspedes</option>
-                      {activeId === 'nascente' && (
-                        <>
-                          <option value="4">4 Hóspedes</option>
-                          <option value="6">6 Hóspedes</option>
-                          <option value="8">8 Hóspedes</option>
-                          <option value="10">10 Hóspedes</option>
-                        </>
-                      )}
+                      {(!bookableRoomId || (bookableRooms.find(item => item.id === bookableRoomId)?.max_adults ?? 2) >= 2) && <option value="2">2 Hóspedes</option>}
+                      {Array.from({ length: 18 }, (_, index) => index + 3).filter(count => {
+                        const room = bookableRooms.find(item => item.id === bookableRoomId);
+                        return !room ? count <= 10 : count <= Math.min(room.max_adults, room.max_occupancy);
+                      }).map(count => <option key={count} value={count}>{count} Hóspedes</option>)}
                     </select>
                   </div>
 
                   <button 
-                    type="submit" 
+                    type="submit" disabled={bookingBusy}
                     className="w-full bg-[#d4b098] text-[#0a0604] py-4 text-center font-sans text-[10px] tracking-widest uppercase font-semibold transition-all hover:bg-white cursor-pointer"
                   >
-                    Confirmar Intenção
+                    {bookingBusy ? 'A consultar...' : 'Consultar Disponibilidade'}
                   </button>
                 </form>
               ) : (
-                <motion.div 
-                  className="space-y-6 text-center py-8"
+                <motion.div
+                  className="space-y-6 py-2"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                 >
-                  <div className="w-16 h-16 rounded-full bg-[#d4b098]/10 flex items-center justify-center text-[#d4b098] mx-auto">
-                    <CheckCircle2 size={36} strokeWidth={1} />
-                  </div>
-                  <div className="space-y-2">
-                    <h4 className="text-white font-serif text-xl font-light">Solicitação Registada</h4>
-                    <p className="text-stone-400 font-sans text-xs leading-relaxed">
-                      Agradecemos o seu interesse na {house.title}. O nosso gestor irá contactá-lo nas próximas 2 horas por telefone ou e-mail para confirmar a disponibilidade.
+                  <h4 className="text-white font-serif text-xl font-light">Estadia disponível</h4>
+                  <p className="text-stone-400 font-sans text-xs">
+                    {bookingQuote.nights} {bookingQuote.nights === 1 ? 'noite' : 'noites'} · Total: {(bookingQuote.accommodationCents / 100).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
+                  </p>
+                  {bookingQuote.paymentDueCents !== bookingQuote.accommodationCents && (
+                    <p className="text-stone-400 font-sans text-xs">A pagar agora: {(bookingQuote.paymentDueCents / 100).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</p>
+                  )}
+                  {!bookingQuote.bookingsEnabled ? (
+                    <p className="text-amber-200 font-sans text-xs leading-relaxed">
+                      Simulação de desenvolvimento. Os pagamentos e as reservas online ainda não estão ativos.
                     </p>
-                  </div>
-                  <button 
-                    onClick={() => setFormSubmitted(false)}
-                    className="text-white border border-white/20 px-6 py-2.5 font-sans text-[10px] tracking-widest uppercase hover:bg-white hover:text-black transition-all cursor-pointer"
-                  >
-                    Voltar
-                  </button>
+                  ) : <form onSubmit={handleCheckout} className="space-y-4">
+                    <input required maxLength={160} value={guestName} onChange={e => setGuestName(e.target.value)} aria-label="Nome completo" placeholder="Nome completo"
+                      className="w-full bg-black/40 border border-white/10 text-white p-4 font-sans text-xs outline-none focus:border-[#d4b098]" />
+                    <input required type="email" maxLength={254} value={guestEmail} onChange={e => setGuestEmail(e.target.value)} aria-label="E-mail" placeholder="E-mail"
+                      className="w-full bg-black/40 border border-white/10 text-white p-4 font-sans text-xs outline-none focus:border-[#d4b098]" />
+                    <input type="tel" maxLength={40} value={guestPhone} onChange={e => setGuestPhone(e.target.value)} aria-label="Telefone (opcional)" placeholder="Telefone (opcional)"
+                      className="w-full bg-black/40 border border-white/10 text-white p-4 font-sans text-xs outline-none focus:border-[#d4b098]" />
+                    <p className="text-stone-400 font-sans text-xs leading-relaxed whitespace-pre-wrap">{bookingQuote.policy.terms}</p>
+                    <p className="text-stone-400 font-sans text-xs leading-relaxed whitespace-pre-wrap">{bookingQuote.policy.cancellation}</p>
+                    <label className="flex gap-3 text-stone-400 font-sans text-xs leading-relaxed"><input required type="checkbox" checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} />Aceito as condições de reserva e cancelamento.</label>
+                    <label className="flex gap-3 text-stone-400 font-sans text-xs leading-relaxed"><input required type="checkbox" checked={privacyAcknowledged} onChange={e => setPrivacyAcknowledged(e.target.checked)} />Li a <a href={bookingQuote.policy.privacyUrl} target="_blank" rel="noreferrer" className="underline">política de privacidade</a>.</label>
+                    <button disabled={bookingBusy} type="submit" className="w-full bg-[#d4b098] text-[#0a0604] py-4 text-center font-sans text-[10px] tracking-widest uppercase font-semibold hover:bg-white disabled:opacity-50">
+                      {bookingBusy ? 'A preparar pagamento...' : 'Continuar para pagamento seguro'}
+                    </button>
+                  </form>}
+                  <button type="button" disabled={bookingBusy} onClick={() => { setTermsAccepted(false); setPrivacyAcknowledged(false); setBookingQuote(null); setBookingError(''); }} className="text-white border border-white/20 px-6 py-2.5 font-sans text-[10px] tracking-widest uppercase hover:bg-white hover:text-black">Alterar datas</button>
                 </motion.div>
               )}
+
+              {bookingError && <p role="alert" className="mt-5 text-amber-200 font-sans text-xs leading-relaxed">{bookingError}</p>}
 
               {/* Secure Booking Hint */}
               <div className="flex items-center gap-3 mt-6 pt-6 border-t border-white/5 text-stone-500 font-sans text-[10px]">
                 <Sparkles size={12} className="text-[#d4b098]" />
-                <span>Casas do Beco • Certificado Registo Oficial RNET</span>
+                <span>Casas do Beco • Reserva direta</span>
               </div>
             </div>
           </div>

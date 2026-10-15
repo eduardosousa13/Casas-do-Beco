@@ -1,0 +1,8 @@
+import type { ReactNode } from 'react';
+import { CalendarDays, LayoutDashboard, BookOpen, Wallet, ArrowUpRight, LogOut } from 'lucide-react';
+import { authClient } from './auth-client';
+export type AdminPage='summary'|'calendar'|'reservations'|'finance'|'history'|'sessions';
+const navigation=[{id:'summary',href:'/admin',label:'Resumo',icon:LayoutDashboard},{id:'calendar',href:'/admin/calendar',label:'Calendário',icon:CalendarDays},{id:'reservations',href:'/admin/reservations',label:'Reservas',icon:BookOpen},{id:'finance',href:'/admin/finance',label:'Financeiro',icon:Wallet}];
+export default function Shell({userName,page,children}:{userName:string;page:AdminPage;children:ReactNode}) {
+ return <div className="admin-shell"><a className="skip-link" href="#workspace">Saltar para o conteúdo</a><aside><a className="brand" href="/admin"><img src="/src/assets/images/logo.png" alt="Casas do Beco Ladoeiro"/><small>O seu alojamento</small></a><nav aria-label="Gestão do alojamento">{navigation.map(n=><a key={n.id} href={n.href} aria-current={page===n.id?'page':undefined}><n.icon size={18} strokeWidth={1.4}/>{n.label}<ArrowUpRight size={14}/></a>)}</nav><div className="account"><span className="eyebrow">Proprietário</span><p>{userName}</p><a href="/admin/security">Segurança da conta</a><a href="/admin/sessions">Dispositivos ligados</a><a href="/admin/history">Histórico de segurança</a><a href="/">Ver o site ↗</a><button className="secondary" onClick={async()=>{const r=await authClient.signOut({});if(!r.error)window.location.assign('/admin/login');}}><LogOut size={14}/> Terminar sessão</button></div><small className="signature">Ladoeiro · Beira Baixa</small></aside><main id="workspace">{children}</main></div>;
+}
