@@ -3,15 +3,19 @@ import { database,transaction } from './db';
 import { paymentServiceConfigured,processPaymentCommand,reconcileCheckout,reconcilePayment,recoverInitialCheckout } from './payment-worker';
 import { deliverReservationEmail,sendReservationEmail } from './reservation-email';
 import { deliverRecoveryEmail,sendRecoveryEmail,recoveryMailConfigured } from './auth-email';
+import {telegramConfig,telegramSender} from './telegram';
+import {deliverAlerts,technicalAlerts} from './alert-worker';
 export async function runWorker(signal:AbortSignal,once=false){
 let lastReconcile=0,lastCleanup=0;
+const alerts=telegramConfig(),send=alerts?telegramSender(alerts):null;
+const report=alerts&&send?technicalAlerts(send,alerts.site):null;
+if(process.env.TELEGRAM_ALERTS_ENABLED==='true'&&!alerts)process.stderr.write('Telegram inativo: configuração incompleta ou inválida.\n');
 try {
   do {
     try {
-      await database().query("INSERT INTO worker_health(id,last_seen) VALUES('operations',now()) ON CONFLICT(id) DO UPDATE SET last_seen=now()");
       if(Date.now()-lastCleanup>3600000){
         await database().query("DELETE FROM public_request_limits WHERE window_start<now()-interval '1 day'");
-        await database().query("DELETE FROM alert_events WHERE created_at<now()-interval '30 days'");
+        await database().query("DELETE FROM alert_events WHERE created_at<now()-interval '30 days' AND delivery_status IN ('sent','skipped','dead')");
         lastCleanup=Date.now();
       }
       if(recoveryMailConfigured()) {
@@ -29,7 +33,11 @@ try {
           for(const payment of payments) {try {await transaction(db=>reconcilePayment(db,payment));}catch{process.stderr.write('Movimento pendente de reconciliação.\n');}}
         }
       }
-    } catch {process.stderr.write('Tarefa não concluída; nova tentativa no próximo ciclo.\n');}
+      await database().query("INSERT INTO worker_health(id,last_seen) VALUES('operations',now()) ON CONFLICT(id) DO UPDATE SET last_seen=now()");
+      await report?.(true);
+    } catch {process.stderr.write('Tarefa não concluída; nova tentativa no próximo ciclo.\n');await report?.(false);}
+    // Telegram cannot block reservation/payment work or make readiness fail.
+    if(alerts&&send&&!signal.aborted){try{await deliverAlerts(database(),alerts,send);}catch{process.stderr.write('Fila Telegram pendente; nova tentativa no próximo ciclo.\n');}}
     if(once||signal.aborted) break;
     try{await setTimeout(30000,undefined,{signal});}catch{break;}
   }while(!signal.aborted);
