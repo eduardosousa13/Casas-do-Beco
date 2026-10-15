@@ -19,6 +19,10 @@ function retryDelay(events:AlertEvent[],result:Exclude<SendResult,{ok:true}>){re
 // Lease the channel and rows atomically; never hold an SQL transaction while
 // calling Telegram. The channel lease also enforces rate limits across replicas.
 export async function deliverAlerts(db:Sql,config:TelegramConfig,send:TelegramSender){
+  // The normal idle case is one indexed read, no writes and no Telegram call.
+  const waiting=await db.query(`SELECT EXISTS(SELECT 1 FROM alert_events WHERE created_at>=$1 AND available_at<=now()
+    AND (delivery_status='pending' OR (delivery_status='sending' AND lease_until<now()))) AS pending`,[config.from]);
+  if(waiting.rows[0]?.pending!==true)return;
   const hash=createHash('sha256').update(JSON.stringify([config.token,config.chatId,config.threadId,config.from.toISOString()])).digest('hex');
   await db.query(`INSERT INTO alert_delivery_channels(id,config_hash) VALUES('telegram',$1)
     ON CONFLICT(id) DO UPDATE SET config_hash=excluded.config_hash,blocked_reason=NULL,next_attempt_at=now()
