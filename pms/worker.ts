@@ -7,9 +7,10 @@ import {telegramConfig,telegramSender} from './telegram';
 import {deliverAlerts,technicalAlerts} from './alert-worker';
 export async function runWorker(signal:AbortSignal,once=false){
 let lastReconcile=0,lastCleanup=0;
-const alerts=telegramConfig(),send=alerts?telegramSender(alerts):null;
-const report=alerts&&send?technicalAlerts(send,alerts.site):null;
-if(process.env.TELEGRAM_ALERTS_ENABLED==='true'&&!alerts)process.stderr.write('Telegram inativo: configuração incompleta ou inválida.\n');
+const destinations=([telegramConfig(),telegramConfig(process.env,'technical')]).filter(c=>c!==null);
+const technical=destinations.find(c=>c.destination==='technical');
+const report=technical?technicalAlerts(telegramSender(technical),technical.site):null;
+if(process.env.TELEGRAM_ALERTS_ENABLED==='true'&&destinations.length!==2)process.stderr.write('Telegram: destino operacional ou técnico incompleto/inválido.\n');
 try {
   do {
     try {
@@ -37,7 +38,7 @@ try {
       await report?.(true);
     } catch {process.stderr.write('Tarefa não concluída; nova tentativa no próximo ciclo.\n');await report?.(false);}
     // Telegram cannot block reservation/payment work or make readiness fail.
-    if(alerts&&send&&!signal.aborted){try{await deliverAlerts(database(),alerts,send);}catch{process.stderr.write('Fila Telegram pendente; nova tentativa no próximo ciclo.\n');}}
+    for(const alerts of destinations){if(signal.aborted)break;try{await deliverAlerts(database(),alerts,telegramSender(alerts));}catch{process.stderr.write('Fila Telegram pendente; nova tentativa no próximo ciclo.\n');}}
     if(once||signal.aborted) break;
     try{await setTimeout(30000,undefined,{signal});}catch{break;}
   }while(!signal.aborted);
