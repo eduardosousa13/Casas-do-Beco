@@ -20,12 +20,12 @@ Reservas online ficam `BOOKINGS_ENABLED=false`; `STRIPE_LIVE_ALLOWED=false`. Sem
 
 ## Verificação e recuperação
 
-- `/healthz` devolve 200 apenas com migração 011 e heartbeat recente, quando worker ativado. DB/worker indisponível devolve 503 sem revelar detalhes.
+- `/healthz` devolve 200 apenas com migração 012 e heartbeat recente, quando worker ativado. DB/worker indisponível devolve 503 sem revelar detalhes.
 - Verificar `/`, páginas públicas, `/admin/login`, bloqueio anónimo de `/admin` e APIs; testar disponibilidade e valores pela API.
 - Validar operações pelo admin autenticado sem alterar credenciais ou segundo fator. Pagamentos requerem ensaio Stripe sandbox separado.
 - Confirmar backup automático PostgreSQL no Railway e efetuar ensaio de restauro numa base isolada antes da abertura comercial. Um backup configurado sem restauro testado não é prova de recuperação.
 - Rollback de código no Railway só depois de verificar compatibilidade com o esquema atual. Não desfazer migrações destrutivamente. Manter base e segredo de auth em cópias protegidas, com acesso restrito.
-- `/healthz` é readiness para deploy. Monitor contínuo externo e avisos Telegram ainda serão ativados; ver [alertas](pms/ALERTAS-TELEGRAM.md).
+- `/healthz` é readiness para deploy. O envio Telegram tem ativação explícita e destino fixo, com outbox persistente no worker atual; ver [alertas](pms/ALERTAS-TELEGRAM.md). Monitor contínuo externo ainda requer configuração independente.
 
 Alojamento funcional não equivale a reservas comerciais prontas: faltam ainda regras/inventário final, textos PT/EN completos, revisão dos vídeos, ensaios Stripe/SMTP e políticas do negócio.
 
