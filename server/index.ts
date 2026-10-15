@@ -8,6 +8,8 @@ import {webRequest,clientIp,sendResponse} from './transport';
 import {handleApi,adminBootstrap,publicPages,securityHeaders,bootstrapJson} from './app';
 import {staticResponse} from './static';
 import {database} from '../pms/db';
+import {runWorker} from '../pms/worker';
+import {readiness} from './health';
 dotenv.config({path:'.env.local',override:false,quiet:true});
 const dev=process.argv.includes('--dev'),root=process.cwd(),clientRoot=path.join(root,'dist/client');
 const argumentPort=process.argv.indexOf('--port'),port=Number(argumentPort>=0?process.argv[argumentPort+1]:process.env.PORT||3000),host=process.env.HOST||'0.0.0.0';
@@ -23,6 +25,8 @@ const server=createServer({requestTimeout:15000,headersTimeout:10000},async(req,
  try{
   const incoming=new URL(req.url||'/','http://localhost'),pathname=incoming.pathname.replace(/\/$/,'')||'/';
   for(const [key,value] of securityHeaders(pathname))res.setHeader(key,value);
+  if(pathname==='/healthz'&&['GET','HEAD'].includes(req.method||'GET')){await sendResponse(req,res,await readiness(database(),process.env.PMS_WORKER_ENABLED==='true'));return;}
+  if(process.env.NODE_ENV==='production'&&process.env.PUBLIC_SITE_URL&&['GET','HEAD'].includes(req.method||'GET')&&req.headers.host!==new URL(process.env.PUBLIC_SITE_URL).host&&req.headers.host!=='healthcheck.railway.app'){const target=new URL(process.env.PUBLIC_SITE_URL);target.pathname=incoming.pathname;target.search=incoming.search;res.writeHead(308,{Location:target.href});res.end();return;}
   if(pathname==='/api'||pathname.startsWith('/api/')){const request=await webRequest(req);await sendResponse(req,res,await handleApi(request,clientIp(req)));return;}
   if(!['GET','HEAD'].includes(req.method||'GET')){res.writeHead(405,{Allow:'GET, HEAD'});res.end('Método inválido.');return;}
   const request=await webRequest(req);
@@ -49,6 +53,9 @@ const server=createServer({requestTimeout:15000,headersTimeout:10000},async(req,
 });
 if(dev){const {createServer:createVite}=await import('vite');vite=await createVite({server:{middlewareMode:true,hmr:{server}},appType:'custom'});}
 server.listen(port,host,()=>console.log(`Casas do Beco ${dev?'development':'production'}: http://${host}:${port}`));
+const workerAbort=new AbortController();
+const worker=process.env.PMS_WORKER_ENABLED==='true'?runWorker(workerAbort.signal):undefined;
+worker?.catch(()=>{console.error('PMS worker stopped unexpectedly');void stop();process.exitCode=1;});
 let stopping=false;
-async function stop(){if(stopping)return;stopping=true;server.close();server.closeIdleConnections();await vite?.close();if(process.env.DATABASE_URL)await database().end();const deadline=setTimeout(()=>{server.closeAllConnections();},5000);deadline.unref();}
+async function stop(){if(stopping)return;stopping=true;const deadline=setTimeout(()=>{server.closeAllConnections();process.exit(1);},25000);deadline.unref();workerAbort.abort();server.close();server.closeIdleConnections();await vite?.close();await worker;if(process.env.DATABASE_URL)await database().end();clearTimeout(deadline);}
 process.on('SIGTERM',()=>void stop());process.on('SIGINT',()=>void stop());
