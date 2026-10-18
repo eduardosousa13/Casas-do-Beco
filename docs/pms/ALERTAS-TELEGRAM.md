@@ -60,6 +60,18 @@ node dist/pms/alerts-cli.mjs reset technical
 
 ## Limite importante: monitor externo
 
+### Pendência adiada por Eduardo — 18/10/2026
+
+**Lembrar ao retomar a preparação da abertura comercial: configurar o monitor externo de uptime e os seus avisos Telegram.** Eduardo decidiu deixar este assunto para depois; não continuar a configuração sem retomar o tema com ele. Os alertas internos do bot continuam separados desta pendência.
+
+- [ ] Escolher o fornecedor e concluir o acesso à conta. O registo HetrixTools não foi conseguido; StatusCake Free foi sugerido como alternativa após pesquisa no Reddit e documentação oficial, mas não foi escolhido/configurado definitivamente. Revalidar plano gratuito, uso comercial e envio para grupo Telegram antes de avançar.
+- [ ] Configurar consulta HTTPS a `https://www.casasdobeco.com/healthz`, verificando sucesso HTTP e conteúdo esperado, com tolerância a falhas para evitar alarmes transitórios.
+- [ ] Configurar avisos de falha e recuperação apenas para **Axion - DB alerts**, emitidos fora do Railway e sem depender do worker das Casas do Beco.
+- [ ] Testar os avisos e a recuperação de forma controlada, sem interromper a base ou reservas de produção; registar evidência e limites do teste.
+- [ ] Documentar manutenção da conta/plano, responsáveis e procedimento em caso de falha. Não considerar concluída a monitorização por o Railway mostrar os serviços ativos.
+
+Até retomar: consulta manual de `/healthz`, estados e logs no Railway. Isto não equivale a monitorização automática contínua. Healthchecks.io (sinais enviados pelo worker) foi discutido como alternativa/complemento, mas não foi implementado nem é necessário acrescentá-lo já à solução HTTP escolhida para investigar.
+
 `/healthz` verifica esquema 013 e heartbeat do ciclo de operações. Um processo parado ou um Railway totalmente indisponível não pode enviar o seu próprio aviso. Os avisos técnicos internos conseguem sinalizar DB/ciclo com falhas enquanto o processo e o Telegram têm rede, mas **não substituem um monitor externo**.
 
 Para cobrir a paragem total falta configurar um monitor independente contra `https://www.casasdobeco.com/healthz` com destino Telegram aprovado. A conta/integração desse serviço ainda não foi fornecida. Não há monitor externo ativo nem garantia de aviso para uma indisponibilidade total. O healthcheck Railway é usado para deploy, não substitui esse serviço.
@@ -69,3 +81,7 @@ Para cobrir a paragem total falta configurar um monitor independente contra `htt
 Testes isolados com HTTP Telegram simulado e PostgreSQL real descartável: configuração inválida, privacidade, 429, 401/403, grupo migrado, falhas de rede, histórico filtrado, lotes, cooldown, lease perdido, concorrência de workers, limite de tentativas, suspensão/reset, falha técnica/recuperação, alterações de revisão e isolamento entre grupos operacionais/técnicos. O ensaio em produção usa evento sintético claramente identificado; não simula cobrança real ou uma interrupção da base de produção.
 
 Fontes: [Telegram Bot API](https://core.telegram.org/bots/api), [limites de envio](https://core.telegram.org/bots/faq#my-bot-is-hitting-limits-how-do-i-avoid-this), [preços Railway](https://docs.railway.com/pricing), [healthchecks Railway](https://docs.railway.com/deployments/healthchecks).
+
+### Incremento de emails em preparação — 18/10/2026
+
+Migração 014 acrescenta alerta `contact_email / failed` para o grupo técnico depois de cinco tentativas falhadas do aviso de contacto. Inclui só a referência técnica; nome, email, telefone e mensagem permanecem na base. Novos contactos guardados e envios aceites não geram spam Telegram. Publicação e ensaio real desta alteração ainda pendentes.

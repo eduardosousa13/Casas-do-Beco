@@ -3,6 +3,7 @@ import { database,transaction } from './db';
 import { paymentServiceConfigured,processPaymentCommand,reconcileCheckout,reconcilePayment,recoverInitialCheckout } from './payment-worker';
 import { deliverReservationEmail,sendReservationEmail } from './reservation-email';
 import { deliverRecoveryEmail,sendRecoveryEmail,recoveryMailConfigured } from './auth-email';
+import {deliverContactEmail} from './contact-email';
 import {telegramConfig,telegramSender} from './telegram';
 import {deliverAlerts,technicalAlerts} from './alert-worker';
 export async function runWorker(signal:AbortSignal,once=false){
@@ -22,6 +23,7 @@ try {
       if(recoveryMailConfigured()) {
         await transaction(db=>deliverRecoveryEmail(db,sendRecoveryEmail));
         await transaction(db=>deliverReservationEmail(db,sendReservationEmail));
+        await transaction(db=>deliverContactEmail(db));
       }
       if(paymentServiceConfigured()) {
         await transaction(db=>recoverInitialCheckout(db));

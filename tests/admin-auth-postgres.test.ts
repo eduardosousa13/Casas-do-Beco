@@ -136,9 +136,10 @@ test('real auth: closed registration, password + TOTP, recovery code, revoked se
     assert.equal((await staffSession(originalRequest)).sessionId,originalActor.sessionId);
     jar.clear(); for(const [key,value] of originalJar) jar.set(key,value);
     // Recovery uses only a fictitious account and a delivery stub, never SMTP.
-    const smtpNames=['SMTP_HOST','SMTP_USER','SMTP_PASSWORD','SMTP_PORT'] as const;
+    const smtpNames=['SMTP_HOST','SMTP_USER','SMTP_PASSWORD','SMTP_PORT','EMAIL_PROVIDER'] as const;
     const smtpOriginal=Object.fromEntries(smtpNames.map(name=>[name,process.env[name]]));
     try {
+      process.env.EMAIL_PROVIDER='smtp';
       process.env.SMTP_PASSWORD='';
       assert.equal((await request('/request-password-reset',{email},'http://localhost:3004','127.0.0.10')).status,503);
       assert.equal((await request('/request-password-reset',{email:'missing@example.com'},'http://localhost:3004','127.0.0.11')).status,503);

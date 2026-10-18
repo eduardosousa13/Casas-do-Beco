@@ -1,7 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import nodemailer from 'nodemailer';
+import {deliverEmail,EmailDeliveryError} from '../server/email';
 import type { Sql } from './core';
-import { recoveryMailConfigured } from './auth-email';
 export type MailKind='confirmation'|'changed'|'cancelled'|'payment'|'refund';
 const euro=(v:unknown)=>new Intl.NumberFormat('pt-PT',{style:'currency',currency:'EUR'}).format(Number(v)/100);
 export async function queueReservationEmail(db:Sql,id:string,kind:MailKind,eventKey:string,link?:string) {
@@ -17,13 +16,9 @@ export async function deliverReservationEmail(db:Sql,send:(job:Record<string,unk
   const job=(await db.query(`SELECT * FROM reservation_emails WHERE status='queued' AND available_at<=now() ORDER BY available_at,id FOR UPDATE SKIP LOCKED LIMIT 1`)).rows[0];
   if(!job) return false;
   try {await send(job);await db.query(`UPDATE reservation_emails SET status='sent',attempts=attempts+1,completed_at=now() WHERE id=$1`,[job.id]);}
-  catch {await db.query(`UPDATE reservation_emails SET attempts=attempts+1,status=CASE WHEN attempts+1>=5 THEN 'failed' ELSE 'queued' END,available_at=now()+(30*power(2,LEAST(attempts,4))::int)*interval '1 second' WHERE id=$1`,[job.id]);}
+  catch(error) {await db.query(`UPDATE reservation_emails SET attempts=attempts+1,status=CASE WHEN attempts+1>=5 THEN 'failed' ELSE 'queued' END,available_at=now()+GREATEST(30*power(2,LEAST(attempts,4))::int,$2::int)*interval '1 second' WHERE id=$1`,[job.id,error instanceof EmailDeliveryError?error.retryAfterSeconds:0]);}
   return true;
 }
 export async function sendReservationEmail(job:Record<string,unknown>) {
-  if(!recoveryMailConfigured()) throw new Error('Email unavailable');
-  const port=Number(process.env.SMTP_PORT||465);
-  const transport=nodemailer.createTransport({host:process.env.SMTP_HOST,port,secure:port===465,requireTLS:port!==465,auth:{user:process.env.SMTP_USER,pass:process.env.SMTP_PASSWORD},connectionTimeout:10000,greetingTimeout:10000,socketTimeout:15000});
-  try {const info=await transport.sendMail({from:process.env.SMTP_FROM_EMAIL||process.env.SMTP_USER,to:String(job.recipient),subject:String(job.subject),text:String(job.body),messageId:`<${job.id}@${new URL(process.env.PUBLIC_SITE_URL!).hostname}>`,disableFileAccess:true,disableUrlAccess:true});if(!info.accepted?.length || info.rejected?.length) throw new Error('Email rejected');}
-  finally {transport.close();}
+  await deliverEmail({to:String(job.recipient),subject:String(job.subject),text:String(job.body),idempotencyKey:'reservation/'+String(job.id)});
 }

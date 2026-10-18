@@ -573,9 +573,9 @@ export default function Contactos() {
                     <Check size={28} />
                   </div>
                   <div className="space-y-2">
-                    <h3 className="font-serif text-2xl text-white font-light">Mensagem Enviada!</h3>
+                    <h3 className="font-serif text-2xl text-white font-light">Mensagem Recebida!</h3>
                     <p className="text-stone-400 font-sans text-sm font-light max-w-sm leading-relaxed mx-auto">
-                      Agradecemos o seu contacto, <span className="text-[#d4b098] font-medium">{formData.nome}</span>. A sua mensagem foi enviada e responderemos assim que possível.
+                      Agradecemos o seu contacto, <span className="text-[#d4b098] font-medium">{formData.nome}</span>. A sua mensagem ficou registada e responderemos assim que possível.
                     </p>
                   </div>
                   <div className="w-12 h-[1px] bg-[#d4b098]/30" />

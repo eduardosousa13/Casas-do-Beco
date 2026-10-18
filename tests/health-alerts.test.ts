@@ -8,6 +8,8 @@ const db=new PGlite();
 before(async()=>{const dir=new URL('../pms/migrations/',import.meta.url);for(const file of(await readdir(dir)).filter(f=>f.endsWith('.sql')).sort())await db.exec(await readFile(new URL(file,dir),'utf8'));await db.exec('INSERT INTO pms_migrations(version) VALUES(13)');});
 after(()=>db.close());
 test('readiness refuses missing worker and database failures without leaking details',async()=>{
+ assert.equal((await readiness(db,false)).status,503,'previous schema is not ready for contact persistence');
+ await db.exec('INSERT INTO pms_migrations(version) VALUES(14)');
  assert.equal((await readiness(db,false)).status,200);
  assert.equal((await readiness(db,true)).status,503);
  await db.query("INSERT INTO worker_health VALUES('operations',now())");assert.equal((await readiness(db,true)).status,200);
