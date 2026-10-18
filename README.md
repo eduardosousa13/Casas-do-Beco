@@ -37,7 +37,7 @@ No Railway, ative o worker integrado com `PMS_WORKER_ENABLED=true`; não execute
 
 ## Contactos
 
-O formulário usa `/api/contact` e só confirma depois da aceitação SMTP. Sem SMTP configurado, apresenta erro e conserva os campos. O destino é `casasdobecoladoeiro@gmail.com`, configurável em `CONTACT_TO_EMAIL`. Para Gmail use uma palavra-passe de aplicação em `SMTP_PASSWORD`.
+O formulário usa `/api/contact` e confirma após guardar a mensagem em PostgreSQL. O worker envia o aviso para `CONTACT_TO_EMAIL` (Gmail das Casas do Beco), com novas tentativas. Resend por HTTPS serve contactos, reservas PT/EN e recuperação; SMTP mantém-se opcional para ambientes compatíveis. Configuração e limites: [emails](docs/pms/EMAILS.md).
 
 ## Admin e reservas
 

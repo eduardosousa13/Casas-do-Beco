@@ -1,6 +1,8 @@
 import type { RouteHandler } from '../types';
 import { validateContact } from '../contact';
-import { ContactEmailNotConfigured, sendContactEmail } from '../send-contact';
+import {transaction} from '../../pms/db';
+import {queueContactMessage} from '../../pms/contact-email';
+import type {ContactMessage} from '../contact';
 
 
 const maxBodyBytes = 12_000;
@@ -35,7 +37,7 @@ async function readBody(request: Request): Promise<string | null> {
   return Buffer.concat(chunks).toString('utf8');
 }
 
-export const POST: RouteHandler = async ({ request, clientAddress }) => {
+export const contactHandler=(store:(message:ContactMessage)=>Promise<unknown>):RouteHandler=>async ({ request, clientAddress }) => {
   if (request.headers.get('content-type')?.split(';')[0] !== 'application/json') {
     return response(415, 'Formato de pedido inválido.');
   }
@@ -70,13 +72,11 @@ export const POST: RouteHandler = async ({ request, clientAddress }) => {
   attempts.set(key, current);
 
   try {
-    await sendContactEmail(message);
+    await store(message);
     return response(200);
-  } catch (error) {
-    if (error instanceof ContactEmailNotConfigured) {
-      return response(503, 'O envio está temporariamente indisponível.');
-    }
-    console.error('Contact email delivery failed', error);
-    return response(502, 'Não foi possível enviar a mensagem. Tenta novamente mais tarde.');
+  } catch {
+    console.error('Contact message storage failed');
+    return response(503, 'Não foi possível guardar a mensagem. Tenta novamente mais tarde.');
   }
 };
+export const POST=contactHandler(message=>transaction(db=>queueContactMessage(db,message)));

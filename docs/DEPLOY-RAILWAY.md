@@ -16,18 +16,22 @@ O ficheiro `scripts/railway-service.json` é o conjunto de parâmetros operacion
 
 Manter `BETTER_AUTH_SECRET` protegido e estável: cifra também os dados MFA/recuperação. Não gerar outro segredo ao mover uma conta existente. Não copiar sessões/devices de desenvolvimento para produção. Base local mantém-se independente após a transferência; alterações futuras não sincronizam automaticamente.
 
-Reservas online ficam `BOOKINGS_ENABLED=false`; `STRIPE_LIVE_ALLOWED=false`. Sem Stripe sandbox e SMTP configurados/ensaiados não há cobrança, entrega de contactos ou recuperação real por email. O painel indica os serviços indisponíveis. Não apresentar alojamentos/regras de exemplo como inventário comercial aprovado.
+Reservas online ficam `BOOKINGS_ENABLED=false`; `STRIPE_LIVE_ALLOWED=false`. Sem Stripe sandbox e fornecedor de email configurados/ensaiados não há cobrança nem entrega comprovada de emails. As mensagens do formulário ficam guardadas antes do aviso por email. O painel indica os serviços indisponíveis. Não apresentar alojamentos/regras de exemplo como inventário comercial aprovado.
+
+## Emails
+
+Railway Hobby bloqueia SMTP. Usar Resend por HTTPS, com `EMAIL_PROVIDER=resend`, `EMAIL_FROM`, `EMAIL_REPLY_TO` e `RESEND_API_KEY` apenas nas variáveis protegidas do servidor. Verificar o domínio com os registos fornecidos pelo Resend; manter DNSSEC e os registos web existentes. Instruções e estado: [emails](pms/EMAILS.md).
 
 ## Verificação e recuperação
 
-- `/healthz` devolve 200 apenas com migração 013 e heartbeat recente, quando worker ativado. DB/worker indisponível devolve 503 sem revelar detalhes.
+- `/healthz` devolve 200 apenas com migração 014 e heartbeat recente, quando worker ativado. DB/worker indisponível devolve 503 sem revelar detalhes.
 - Verificar `/`, páginas públicas, `/admin/login`, bloqueio anónimo de `/admin` e APIs; testar disponibilidade e valores pela API.
 - Validar operações pelo admin autenticado sem alterar credenciais ou segundo fator. Pagamentos requerem ensaio Stripe sandbox separado.
 - Confirmar backup automático PostgreSQL no Railway e efetuar ensaio de restauro numa base isolada antes da abertura comercial. Um backup configurado sem restauro testado não é prova de recuperação.
 - Rollback de código no Railway só depois de verificar compatibilidade com o esquema atual. Não desfazer migrações destrutivamente. Manter base e segredo de auth em cópias protegidas, com acesso restrito.
 - `/healthz` é readiness para deploy. O envio Telegram tem ativação explícita e destinos fixos para equipa técnica e cliente, com outbox persistente no worker atual; ver [alertas](pms/ALERTAS-TELEGRAM.md). Monitor contínuo externo ainda requer configuração independente.
 
-Alojamento funcional não equivale a reservas comerciais prontas: faltam ainda regras/inventário final, textos PT/EN completos, revisão dos vídeos, ensaios Stripe/SMTP e políticas do negócio.
+Alojamento funcional não equivale a reservas comerciais prontas: faltam ainda regras/inventário final, textos PT/EN completos, revisão dos vídeos, ensaios Stripe/email e políticas do negócio.
 
 
 ## Estado verificado em 15/10/2026

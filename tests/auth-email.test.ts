@@ -4,6 +4,7 @@ import { before, after, test } from 'node:test';
 import { readFile,readdir } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
 import { queueRecoveryEmail,deliverRecoveryEmail } from '../pms/auth-email';
+import {EmailDeliveryError} from '../server/email';
 const db=new PGlite();
 type Job={id:string;payload:string|null;status:string;attempts:number;available_at:Date};
 before(async()=>{
@@ -45,4 +46,13 @@ test('expired, disabled and exhausted jobs never keep usable recovery payloads',
     const job=(await db.query<Job>('SELECT * FROM auth_email_jobs WHERE user_id=$1',[user.id])).rows[0];
     assert.equal(job.status,scenario==='disabled' ? 'cancelled' : scenario);assert.equal(job.payload,null);
   }
+});
+test('recovery rate limit delays retry without extending token validity',async()=>{
+  const user=await fixture();await queueRecoveryEmail(db,user,'test-only');
+  const before=(await db.query<Job&{expires_at:Date}>('SELECT * FROM auth_email_jobs WHERE user_id=$1',[user.id])).rows[0];
+  await db.transaction(tx=>deliverRecoveryEmail(tx,async()=>{throw new EmailDeliveryError('rate_limit',300);}));
+  const after=(await db.query<Job&{expires_at:Date}>('SELECT * FROM auth_email_jobs WHERE id=$1',[before.id])).rows[0];
+  assert.equal(after.status,'queued');assert.equal(after.attempts,1);
+  assert.ok(new Date(after.available_at).getTime()-Date.now()>295000);
+  assert.equal(String(after.expires_at),String(before.expires_at));
 });

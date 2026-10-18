@@ -16,6 +16,8 @@ test('normaliza uma mensagem válida', () => {
 
 test('rejeita endereços de email inválidos e texto de cabeçalho', () => {
   assert.equal(validateContact({ ...validMessage, email: 'sem-arroba' }), null);
+  assert.equal(validateContact({ ...validMessage, email: 'a,b@example.com' }), null);
+  assert.equal(validateContact({ ...validMessage, email: 'a\x00@example.com' }), null);
   assert.equal(validateContact({ ...validMessage, nome: 'Maria\nBcc: outra@example.com' }), null);
 });
 

@@ -21,7 +21,7 @@ export function validateContact(value: unknown): ContactMessage | null {
   const mensagem = (input.mensagem as string | undefined)?.trim() ?? '';
 
   if (nome.length < 2 || nome.length > 100 || /[\r\n\x00-\x1f]/.test(nome)) return null;
-  if (email.length > 254 || !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email)) return null;
+  if (email.length > 254 || !/^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$/.test(email) || /[\x00-\x1f\x7f]/.test(email)) return null;
   if (telefone.length > 40 || /[\r\n\x00-\x1f]/.test(telefone)) return null;
   if (!houses.has(casa as ContactMessage['casa'])) return null;
   if (mensagem.length < 10 || mensagem.length > 3000 || /[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(mensagem)) return null;

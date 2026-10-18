@@ -67,7 +67,7 @@ Adultos, crianças e bebés contam para a capacidade. A ficha e reserva manual s
 - `cancel-reservation` só liberta noites depois de os pagamentos registados estarem totalmente reembolsados ou conciliados. Reembolsos são feitos na Stripe e atualizados pelo evento `charge.refunded`.
 - `check-in` e `check-out` registam o ciclo da estadia.
 
-Para produção, usar PostgreSQL persistente com cópias de segurança testadas, HTTPS, SMTP operacional, monitorização de webhooks e um processo de revisão diária de pagamentos e `stale-holds`. Os comandos de administração são locais e **não** devem ser expostos na web. O painel operacional tem resumo, calendário, reservas e financeiro; faltam configuração/ensaios reais, faturação e política de conservação de dados. Estes pontos, além da configuração real e políticas finais, têm de ser fechados antes de publicar reservas.
+Para produção, usar PostgreSQL persistente com cópias de segurança testadas, HTTPS, serviço de email operacional, monitorização de webhooks e um processo de revisão diária de pagamentos e `stale-holds`. Os comandos de administração são locais e **não** devem ser expostos na web. O painel operacional tem resumo, calendário, reservas e financeiro; faltam configuração/ensaios reais, faturação e política de conservação de dados. Estes pontos, além da configuração real e políticas finais, têm de ser fechados antes de publicar reservas.
 
 ## Acesso ao painel inicial
 
@@ -90,13 +90,13 @@ Referências técnicas: [Stripe Checkout](https://docs.stripe.com/payments/check
 
 ### Recuperar uma palavra-passe perdida
 
-No login, escolha **Esqueci-me da palavra-passe** (`/admin/recover`). O pedido tem resposta genérica para contas ativas existentes/inexistentes; sem SMTP configurado apresenta indisponibilidade antes de procurar a conta. Uma ligação recebida abre `/admin/reset-password`, é de uso único e expira 15 minutos após o pedido. O token viaja no fragmento da ligação, é retirado da barra de endereço depois de carregar e não é enviado ao servidor no pedido da página. O formulário envia-o apenas à API de redefinição.
+No login, escolha **Esqueci-me da palavra-passe** (`/admin/recover`). O pedido tem resposta genérica para contas ativas existentes/inexistentes; sem serviço de email configurado apresenta indisponibilidade antes de procurar a conta. Uma ligação recebida abre `/admin/reset-password`, é de uso único e expira 15 minutos após o pedido. O token viaja no fragmento da ligação, é retirado da barra de endereço depois de carregar e não é enviado ao servidor no pedido da página. O formulário envia-o apenas à API de redefinição.
 
 Depois de alterar a palavra-passe, todas as sessões, dispositivos reconhecidos e ligações de recuperação pendentes da conta são invalidados. O segundo fator e os códigos de recuperação TOTP mantêm-se; voltar a entrar exige o fator ou um código de recuperação válido. O histórico guarda a ação sem palavra-passe/token.
 
-O envio usa a tabela `auth_email_jobs`, com conteúdo cifrado a partir de `BETTER_AUTH_SECRET`, novas tentativas e remoção do conteúdo após envio, falha final, expiração ou cancelamento. O estado `sent` significa aceitação pelo SMTP, não entrega comprovada na caixa de entrada. Uma interrupção depois de enviar e antes de confirmar a transação pode repetir o email, com a mesma ligação e Message-ID. A fila de recuperação permanece cifrada. Emails de reservas têm uma fila separada; cobranças/reembolsos têm pedidos persistentes. O worker operacional processa as três e reconcilia estados com Stripe.
+O envio usa a tabela `auth_email_jobs`, com conteúdo cifrado a partir de `BETTER_AUTH_SECRET`, novas tentativas e remoção do conteúdo após envio, falha final, expiração ou cancelamento. O estado `sent` significa aceitação pelo fornecedor, não entrega comprovada na caixa de entrada. Uma interrupção depois de enviar e antes de confirmar a transação pode repetir a tentativa, com a mesma ligação e chave de idempotência. Resend deduplica durante 24 horas; SMTP recebe Message-ID estável, sem garantia de deduplicação. A fila de recuperação permanece cifrada. Emails de reservas têm uma fila separada; cobranças/reembolsos têm pedidos persistentes. O worker operacional processa as três e reconcilia estados com Stripe.
 
-Após preencher as variáveis `SMTP_*` já existentes, execute num processo separado:
+Configure o fornecedor conforme [emails](../docs/pms/EMAILS.md). Em produção Railway, mantenha apenas o worker integrado. Para execução local separada:
 
 ```bash
 npm run pms:migrate
@@ -105,7 +105,7 @@ npm run pms:worker
 
 O worker deve acompanhar o processo web no alojamento, com reinício e monitorização. `npm run pms:worker -- --once` executa um ciclo; `pms:mail` permanece como alternativa apenas para email, sem pagamentos. Não o execute com contas reais durante testes de entrega sem autorização para enviar. Guarde o segredo de autenticação com os backups protegidos; é também necessário para ler mensagens pendentes. Verificar tarefas `failed`/`expired` e funcionamento do worker faz parte da configuração operacional, com alerta de serviços indisponíveis no painel.
 
-Testado com SMTP simulado e conta descartável: resposta indistinguível, redirecionamento externo recusado, token inválido/expirado/reutilizado recusado, duas submissões concorrentes só aceites uma vez, palavra-passe antiga recusada, sessões revogadas e segundo fator preservado. Entrega real e supervisão do worker permanecem por validar. No ambiente local atual SMTP não está configurado e o worker não foi iniciado.
+Testado com SMTP simulado e conta descartável: resposta indistinguível, redirecionamento externo recusado, token inválido/expirado/reutilizado recusado, duas submissões concorrentes só aceites uma vez, palavra-passe antiga recusada, sessões revogadas e segundo fator preservado. Entrega real e supervisão do worker permanecem por validar. A configuração do fornecedor e a entrega real devem ser verificadas separadamente; testes simulados não demonstram receção na caixa de entrada.
 
 ### Substituição do segundo fator — procedimento
 
