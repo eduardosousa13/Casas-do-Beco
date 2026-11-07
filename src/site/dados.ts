@@ -16,7 +16,6 @@ export const fotos = {
   melancia: f('melancia', 'Melancia com o selo Melancia do Ladoeiro', 1448, 1086),
   procissao: f('procissao', 'Procissão de Santa Catarina por um caminho de terra entre pomares, com o andor florido e o estandarte', 1024, 1536, '50% 35%'),
   entrada: f('interior-entrada', 'Entrada com sofá de madeira clara e manta, parede de pedra e porta de madeira', 1086, 1448),
-  sala: f('interior-sala', 'Canto da sala com sofá e manta', 719, 1600),
   cozinha: f('interior-cozinha', 'Cozinha com azulejo padrão, bancada de granito, armários de madeira e máquina de café', 1086, 1448),
   quarto: f('interior-quarto', 'Quarto com duas camas de colcha azul, toalhas dobradas, candeeiros acesos e quadros de borboletas', 1871, 840),
   banho: f('interior-banho', 'Casa de banho com lavatório branco, estante de madeira com toalhas e secador', 1086, 1448),
