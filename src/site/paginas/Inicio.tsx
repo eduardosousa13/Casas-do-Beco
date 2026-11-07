@@ -29,13 +29,9 @@ function Capa() {
     const q = gsap.utils.selector(el);
     if (semMovimento()) return;
 
-    // Entrada: a pintura assenta e o texto sobe depois de a abertura acabar.
-    gsap.set(q('[data-entra]'), { yPercent: 110 });
-    gsap.set(q('[data-aparece]'), { opacity: 0 });
+    // Entrada: a pintura assenta depois de a abertura acabar.
     const parar = aposAbertura(() => {
       gsap.fromTo(q('[data-fundo]'), { scale: 1.1 }, { scale: 1, duration: 2.6, ease: 'expo.out' });
-      gsap.to(q('[data-entra]'), { yPercent: 0, duration: 1.3, ease: 'expo.out', stagger: 0.1, delay: 0.25 });
-      gsap.to(q('[data-aparece]'), { opacity: 1, duration: 1.2, ease: 'power2.out', delay: 0.7 });
     });
 
     // Scroll: o logótipo encolhe e sobe para o lugar do emblema do cabeçalho; a pintura aproxima-se.
@@ -45,33 +41,23 @@ function Capa() {
       const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: grande ? 0.6 : true } });
       tl.to(q('[data-logo]'), { scale: grande ? 0.42 : 0.7, yPercent: grande ? -62 : -30, opacity: 0, ease: 'power1.in' }, 0)
         .to(q('[data-fundo]'), { scale: 1.14, ease: 'none' }, 0)
-        .to(q('[data-veu]'), { opacity: 0.55, ease: 'none' }, 0)
-        .to(q('[data-texto]'), { yPercent: grande ? -60 : -20, opacity: 0, ease: 'power1.in' }, 0);
+        .to(q('[data-veu]'), { opacity: 0.55, ease: 'none' }, 0);
     });
     return parar;
   }, { scope: ref });
 
   return (
     <section ref={ref} className="relative h-dvh lg:h-[150dvh]" aria-label="Início">
+      <h1 className="sr-only">Casas do Beco, casas de aldeia no Ladoeiro, Idanha-a-Nova</h1>
       <div className="sticky top-0 h-dvh overflow-hidden bg-noite text-cal">
         <div data-fundo className="absolute inset-0 will-change-transform">
           <Imagem foto={fotos.hero} prioridade sizes="100vw" className="h-full w-full object-cover" />
         </div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_46%_44%_at_50%_45%,rgb(38_50_31/0.62),rgb(38_50_31/0.2)_70%,transparent),linear-gradient(to_bottom,rgb(38_50_31/0.4),transparent_28%,transparent_52%,rgb(38_50_31/0.82))]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_46%_44%_at_50%_45%,rgb(38_50_31/0.62),rgb(38_50_31/0.2)_70%,transparent),linear-gradient(to_bottom,rgb(38_50_31/0.4),transparent_28%,transparent_60%,rgb(38_50_31/0.45))]" />
         <div data-veu className="absolute inset-0 bg-noite opacity-0" />
         <div className="absolute inset-0 grid place-items-center">
           <div data-logo className="will-change-transform">
             <Logo className="h-auto w-[min(62vw,20rem,42svh)]" />
-          </div>
-        </div>
-        <div data-texto className="contentor absolute inset-x-0 bottom-0 grid gap-6 pb-8 sm:pb-10 lg:grid-cols-[1fr_auto] lg:items-end">
-          <h1 className="titulo t-media max-w-[16ch]">
-            <span className="block overflow-hidden"><span data-entra className="block">Casas de aldeia no Ladoeiro,</span></span>
-            <span className="block overflow-hidden"><span data-entra className="block"><em>para ficar devagar.</em></span></span>
-          </h1>
-          <div data-aparece className="flex items-center justify-between gap-6 lg:flex-col lg:items-end">
-            <p className="text-sm text-cal/85">Ladoeiro · Idanha-a-Nova · Beira Baixa</p>
-            <Ligacao para="/reservas" claro>Reservar estadia</Ligacao>
           </div>
         </div>
       </div>
@@ -165,13 +151,6 @@ function OMapa() {
           <Capela className="mb-10 h-28 w-auto self-start text-ocre lg:h-40" />
           <Linhas as="h2" className="titulo t-grande">A aldeia inteira, <em>à porta.</em></Linhas>
           <p className="corrido mt-6 text-creme/85">Veja o Ladoeiro de cima e descubra o que há à volta da casa: a igreja, a fonte de 1571, o largo do cruzeiro, o recinto da festa. Quase tudo se faz a pé.</p>
-          <ul className="mt-10 grid gap-x-8 gap-y-3 text-creme/90 sm:grid-cols-2">
-            {pontos.map(p => (
-              <li key={p.id} className="flex items-center gap-3">
-                <span className={`size-2.5 shrink-0 rounded-full ${p.id === 'casa' ? 'bg-ocre' : 'bg-telha'}`} aria-hidden />{p.nome}
-              </li>
-            ))}
-          </ul>
           <Ligacao para="/mapa" claro className="mt-12">Explorar o mapa</Ligacao>
         </div>
         <Link to="/mapa" data-foto aria-label="Abrir o mapa interativo do Ladoeiro"
