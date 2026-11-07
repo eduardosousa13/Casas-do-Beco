@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTopo } from '../Estrutura';
-import { EmblemaDesenhado, Logo } from '../Marca';
+import { BrasaoDesenhado, Logo } from '../Marca';
 import { Capela, Linha, Estandarte, Melancia } from '../desenhos';
 import { Acende, aposAbertura, FotoPorFazer, GRANDE, gsap, Imagem, Ligacao, Linhas, Revela, semMovimento, useGSAP } from '../kit';
 import { contactos, fotos, pontos, telefoneLink } from '../dados';
@@ -70,7 +70,7 @@ function Manifesto() {
     <section className="bg-creme py-24 lg:py-40">
       <div className="contentor grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.4fr)] lg:gap-20">
         <div className="lg:sticky lg:top-32 lg:self-start">
-          <EmblemaDesenhado className="h-36 w-auto text-oliva lg:h-64" />
+          <BrasaoDesenhado className="h-40 w-auto text-oliva lg:h-72" />
         </div>
         <div>
           <Acende className="leitura max-w-[30ch]">

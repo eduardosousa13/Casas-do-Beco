@@ -69,7 +69,8 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
 
   useEffect(() => {
     const v = vista.current!, m = mundo.current!;
-    const cam = { cx: L / 2, cy: A / 2, s: 1 };
+    // folga: espaço em píxeis que a câmara pode descer além do fundo da imagem (fica escondido por baixo do cartão no telemóvel).
+    const cam = { cx: L / 2, cy: A / 2, s: 1, folga: 0 };
     let afastado = true;
     let viagem: gsap.core.Tween | null = null;
     const W = () => v.clientWidth, H = () => v.clientHeight;
@@ -78,7 +79,7 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
       cam.s = Math.min(minS() * ZOOM_MAX, Math.max(minS(), cam.s));
       const mx = W() / (2 * cam.s), my = H() / (2 * cam.s);
       cam.cx = Math.min(L - mx, Math.max(mx, cam.cx));
-      cam.cy = Math.min(A - my, Math.max(my, cam.cy));
+      cam.cy = Math.min(A - my + cam.folga / cam.s, Math.max(my, cam.cy));
     };
     const desenhar = () => {
       limitar();
@@ -90,20 +91,26 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
     // desenhá-la à escala certa, com o máximo de nitidez.
     const camada = (sim: boolean) => { m.style.willChange = sim ? 'transform' : 'auto'; };
     const parar = () => { viagem?.kill(); viagem = null; };
-    const voar = (cx: number, cy: number, s: number, duracao: number, ease = 'power3.inOut') => {
+    const voar = (cx: number, cy: number, s: number, duracao: number, ease = 'power3.inOut', folga = cam.folga) => {
       parar();
-      if (semMovimento()) { Object.assign(cam, { cx, cy, s }); desenhar(); return; }
+      if (semMovimento()) { Object.assign(cam, { cx, cy, s, folga }); desenhar(); return; }
       camada(true);
-      viagem = gsap.to(cam, { cx, cy, s, duration: duracao, ease, onUpdate: desenhar, onComplete: () => { viagem = null; camada(false); } });
+      viagem = gsap.to(cam, { cx, cy, s, folga, duration: duracao, ease, onUpdate: desenhar, onComplete: () => { viagem = null; camada(false); } });
     };
-    // O ponto escolhido fica à esquerda do painel no computador e acima dele no telemóvel.
+    // No computador o ponto fica à esquerda do painel. No telemóvel fica a meio do espaço livre entre o
+    // cabeçalho e o cartão, medido depois de o cartão mostrar o novo ponto.
     const ir = (p: Ponto) => {
       afastado = false;
       const s = Math.max(cam.s, minS() * ZOOM_PONTO);
-      const largo = W() >= 768;
-      voar(p.x + (largo ? Math.min(200, W() * 0.15) : 0) / s, p.y + (largo ? 0 : H() * 0.16) / s, s, 1.6);
+      if (W() >= 768) { voar(p.x + Math.min(200, W() * 0.15) / s, p.y, s, 1.6, 'power3.inOut', 0); return; }
+      requestAnimationFrame(() => {
+        const cartao = v.closest('section')?.querySelector('aside');
+        const tapado = (cartao?.getBoundingClientRect().height ?? H() * 0.5) + 16;
+        const alvoY = (72 + H() - tapado) / 2;
+        voar(p.x, p.y + (H() / 2 - alvoY) / s, s, 1.6, 'power3.inOut', tapado);
+      });
     };
-    const afastar = () => { afastado = true; voar(cam.cx, cam.cy, minS(), 1.4); };
+    const afastar = () => { afastado = true; voar(cam.cx, cam.cy, minS(), 1.4, 'power3.inOut', 0); };
     ligar({ ir, afastar });
     api.current.zoom = k => {
       afastado = false;
@@ -213,19 +220,25 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
 
 function Painel({ ponto, fechar }: { ponto: Ponto | null; fechar: () => void }) {
   const [mostrado, setMostrado] = useState<Ponto | null>(ponto);
+  // Ao fechar, o cartão continua a mostrar o último ponto enquanto desliza para fora.
   useEffect(() => { if (ponto) setMostrado(ponto); }, [ponto]);
-  const p = mostrado;
+  const p = ponto ?? mostrado;
   return (
     <aside aria-live="polite" aria-label={p ? p.nome : undefined}
-      className={`absolute bottom-4 left-4 right-4 z-10 max-h-[62svh] overflow-auto rounded-[4px] bg-creme p-6 text-terra shadow-[0_30px_60px_-20px_rgb(0_0_0/0.55)] transition-transform duration-700 ease-(--ease-sai) md:bottom-auto md:left-auto md:right-8 md:top-24 md:w-[22rem] md:max-h-[calc(100svh-8rem)] ${ponto ? 'translate-y-0 md:translate-x-0' : 'translate-y-[calc(100%+2rem)] md:translate-x-[calc(100%+3rem)] md:translate-y-0'}`}>
+      className={`absolute bottom-4 left-4 right-4 z-10 flex max-h-[70svh] flex-col overflow-hidden rounded-[4px] bg-creme text-terra shadow-[0_30px_60px_-20px_rgb(0_0_0/0.55)] transition-transform duration-700 ease-(--ease-sai) md:bottom-auto md:left-auto md:right-8 md:top-24 md:w-[22rem] md:max-h-[calc(100svh-8rem)] ${ponto ? 'translate-y-0 md:translate-x-0' : 'translate-y-[calc(100%+2rem)] md:translate-x-[calc(100%+3rem)] md:translate-y-0'}`}>
       {p && (
         <>
-          <button type="button" onClick={fechar} aria-label="Fechar" className="absolute right-3 top-3 grid size-10 place-items-center hover:bg-palha"><X size={20} aria-hidden /></button>
-          {p.foto ? <div className="mb-5 aspect-[4/3] overflow-hidden rounded-[2px] bg-palha"><Imagem foto={p.foto} sizes="22rem" className="h-full w-full object-cover" /></div>
-            : <FotoPorFazer nome={p.nome} className="mb-5 aspect-[4/3]" />}
-          <h2 className="titulo t-pequena pr-8">{p.nome}</h2>
-          <p className="mt-1 text-sm font-medium text-musgo">{p.tipo}</p>
-          <p className="mt-4 leading-relaxed">{p.texto}</p>
+          <button type="button" onClick={fechar} aria-label="Fechar" className="absolute right-3 top-3 z-10 grid size-10 place-items-center bg-creme/90 hover:bg-palha"><X size={20} aria-hidden /></button>
+          {/* A margem fica num bloco interior: no fim do texto há sempre o mesmo espaço que dos lados, mesmo quando o cartão tem de deslizar. */}
+          <div data-cartao className="min-h-0 overflow-y-auto overscroll-contain">
+            <div className="p-6">
+              {p.foto ? <div className="mb-5 aspect-[16/10] overflow-hidden rounded-[2px] bg-palha md:aspect-[4/3]"><Imagem foto={p.foto} sizes="22rem" className="h-full w-full object-cover" /></div>
+                : <FotoPorFazer nome={p.nome} className="mb-5 aspect-[16/10] md:aspect-[4/3]" />}
+              <h2 className="titulo t-pequena pr-8">{p.nome}</h2>
+              <p className="mt-1 text-sm font-medium text-musgo">{p.tipo}</p>
+              <p className="mt-4 leading-relaxed">{p.texto}</p>
+            </div>
+          </div>
         </>
       )}
     </aside>
