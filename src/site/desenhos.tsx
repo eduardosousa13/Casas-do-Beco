@@ -1,4 +1,5 @@
-import { Desenho } from './kit';
+import { useRef } from 'react';
+import { Desenho, gsap, semMovimento, useGSAP } from './kit';
 
 // Desenhos a traço da aldeia, feitos de geometria simples, que se desenham com o scroll.
 
@@ -57,17 +58,12 @@ export function Estandarte({ className = '' }: { className?: string }) {
   );
 }
 
-// A linha da planície vista do Ladoeiro: serve de remate de cima das secções escuras.
-const COLINA = 'M0 92 C160 64 290 70 440 80 S740 40 960 62 S1260 88 1440 56';
-export function Colina({ cor = 'var(--color-musgo)', traco = 'var(--color-ocre)', className = '' }: { cor?: string; traco?: string; className?: string }) {
-  return (
-    <div className={`-mb-px ${className || 'relative'}`} aria-hidden="true">
-      <svg viewBox="0 0 1440 120" preserveAspectRatio="none" className="block h-[clamp(3rem,8vw,7.5rem)] w-full">
-        <path d={`${COLINA} L1440 120 L0 120 Z`} fill={cor} />
-      </svg>
-      <Desenho viewBox="0 0 1440 120" esticar className="absolute inset-0 h-full w-full" inicio="top 95%" fim="top 35%">
-        <path d={COLINA} stroke={traco} strokeWidth={1.4} vectorEffect="non-scaling-stroke" />
-      </Desenho>
-    </div>
-  );
+// Separador reto entre secções: um fio ocre que se estende de um lado ao outro ao entrar no ecrã.
+export function Linha({ traco = 'var(--color-ocre)', className = '' }: { traco?: string; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useGSAP(() => {
+    if (semMovimento()) return;
+    gsap.fromTo(ref.current, { scaleX: 0 }, { scaleX: 1, ease: 'none', scrollTrigger: { trigger: ref.current, start: 'top 95%', end: 'top 45%', scrub: 0.6 } });
+  }, { scope: ref });
+  return <div ref={ref} aria-hidden="true" className={`h-px origin-left ${className}`} style={{ background: traco }} />;
 }

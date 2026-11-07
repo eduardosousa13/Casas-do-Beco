@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { useTopo } from '../Estrutura';
 import { Estandarte, Melancia } from '../desenhos';
 import { Acende, gsap, Imagem, Ligacao, Linhas, Revela, semMovimento, useGSAP } from '../kit';
-import { fotos, PROVISORIO } from '../dados';
+import { fotos } from '../dados';
 
 export default function Tradicoes() {
   useTopo('escuro');
@@ -23,7 +23,7 @@ export default function Tradicoes() {
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgb(38_50_31/0.85),rgb(38_50_31/0.15)_60%,rgb(38_50_31/0.45))]" />
         <div className="contentor relative flex h-full flex-col justify-end pb-14 lg:pb-20">
           <Linhas as="h1" imediato className="titulo t-gigante max-w-[12ch]">As tradições <em>do Ladoeiro</em></Linhas>
-          <p className="corrido mt-6 text-creme/90">Uma aldeia agrícola tem o calendário marcado pela terra e pela fé. Estas são as datas em que vale a pena cá estar.</p>
+          <p className="corrido mt-6 text-creme/90">Uma aldeia agrícola tem o calendário marcado pela terra e pela fé. Estas são as alturas em que vale a pena cá estar.</p>
         </div>
       </section>
 
@@ -33,7 +33,6 @@ export default function Tradicoes() {
           <div>
             <Estandarte className="mb-8 h-32 w-auto text-oliva" />
             <Linhas as="h2" className="titulo t-grande">Procissão de <em>Santa Catarina de Sena</em></Linhas>
-            <p className="mt-4 text-sm"><em className="por-preencher">{PROVISORIO.dataSantaCatarina}</em></p>
             <Acende className="mt-8 text-[1.2rem] leading-relaxed">
               É o dia em que a aldeia inteira se junta. A imagem de Santa Catarina sai em andor coberto de flores e percorre os caminhos de terra entre os pomares, com o estandarte à frente, o padre, as famílias e quem vem de fora atrás. Não é preciso ser da terra para acompanhar: basta caminhar ao passo da procissão.
             </Acende>
@@ -47,7 +46,6 @@ export default function Tradicoes() {
             <Melancia className="h-28 w-auto text-oliva lg:h-36" />
             <div>
               <Linhas as="h2" className="titulo t-grande">Festival <em>da Melancia</em></Linhas>
-              <p className="mt-4 text-sm"><em className="por-preencher">{PROVISORIO.dataFestival}</em></p>
             </div>
           </div>
           <Revela foto={fotos.festival} sizes="100vw" className="mt-14 aspect-[16/9] rounded-[2px] lg:aspect-[21/9]" />

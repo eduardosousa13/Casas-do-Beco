@@ -3,7 +3,7 @@ import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { useTopo } from '../Estrutura';
 import { EmblemaDesenhado } from '../Marca';
 import { FotoPorFazer, Linhas, Revela } from '../kit';
-import { contactos, fotos, PROVISORIO } from '../dados';
+import { contactos, fotos, telefoneLink } from '../dados';
 
 export default function SobreNos() {
   useTopo('claro');
@@ -25,7 +25,7 @@ export default function SobreNos() {
             <EmblemaDesenhado className="h-32 w-auto text-oliva lg:h-48" />
           </div>
           <div className="grid gap-8 text-[1.1rem] leading-relaxed text-terra/90">
-            <p><em className="por-preencher">{PROVISORIO.donos}</em> recebem cada hóspede pessoalmente. Entregam a chave, explicam a casa e ficam por perto durante a estadia.</p>
+            <p>{contactos.donos} recebem cada hóspede pessoalmente. Entregam a chave, explicam a casa e ficam por perto durante a estadia.</p>
             <p>Conhecem a aldeia como ninguém: onde se come bem, a que horas abre a loja, quando é a próxima festa e qual o caminho mais bonito para ver o pôr do sol na planície.</p>
             <p>As casas são simples e cuidadas. Não somos um hotel: somos uma casa de família, aberta a quem gosta de viver a aldeia por dentro.</p>
             <Revela foto={fotos.fachada} sizes="(min-width: 1024px) 50vw, 90vw" className="mt-6 aspect-[3/2] rounded-[2px]" />
@@ -43,7 +43,7 @@ export default function SobreNos() {
                 </div>
                 <div>
                   <dt className="text-sm text-terra/70">Telefone e WhatsApp</dt>
-                  <dd className="mt-1 text-lg">{contactos.telefone ?? <em className="por-preencher">por confirmar</em>}</dd>
+                  <dd className="mt-1 text-lg"><a href={telefoneLink} className="underline">{contactos.telefone}</a></dd>
                 </div>
                 <div>
                   <dt className="text-sm text-terra/70">Onde estamos</dt>

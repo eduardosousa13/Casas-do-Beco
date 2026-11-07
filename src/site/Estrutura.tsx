@@ -2,9 +2,10 @@ import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { ArrowUpRight, X } from 'lucide-react';
 import { Emblema, EmblemaDesenhado } from './Marca';
-import { Colina } from './desenhos';
+import { Linha } from './desenhos';
 import { gsap, Imagem, irPara, ligarScrollSuave, paraOTopo, prenderScroll, ScrollTrigger, semMovimento } from './kit';
-import { contactos, paginas } from './dados';
+import { contactos, paginas, telefoneLink } from './dados';
+import InfoLegal, { type Separador } from './InfoLegal';
 
 // Cada página diz se o topo é escuro (fotografia por trás) ou claro, para o cabeçalho escolher a cor.
 type Topo = 'escuro' | 'claro';
@@ -163,9 +164,12 @@ function Menu({ aberto, fechar }: { aberto: boolean; fechar: () => void }) {
 
 function Rodape() {
   const ano = new Date().getFullYear();
+  const [legal, setLegal] = useState<Separador | null>(null);
+  const [separador, setSeparador] = useState<Separador>('termos');
+  const abrir = (s: Separador) => { setSeparador(s); setLegal(s); };
   return (
     <footer className="relative bg-noite text-creme">
-      <Colina cor="var(--color-noite)" className="absolute inset-x-0 bottom-full" />
+      <Linha className="absolute inset-x-0 top-0" />
       <div className="contentor pb-8 pt-16 lg:pt-20">
         <div className="grid gap-12 lg:grid-cols-[auto_1fr] lg:gap-20">
           <EmblemaDesenhado className="h-40 w-auto text-ocre lg:h-56" inicio="top 95%" fim="center 60%" />
@@ -180,16 +184,16 @@ function Rodape() {
             <div className="space-y-2 text-creme/85">
               <h2 className="mb-4 text-sm font-semibold text-ocre">Contactos</h2>
               <a href={`mailto:${contactos.email}`} className="block w-fit break-all hover:text-creme hover:underline">{contactos.email}</a>
-              <p>{contactos.telefone ?? <em className="por-preencher text-creme">telefone por confirmar</em>}</p>
+              <a href={telefoneLink} className="block w-fit hover:text-creme hover:underline">{contactos.telefone}</a>
               <p>{contactos.morada}</p>
             </div>
           </div>
         </div>
         <div className="mt-16 grid gap-6 border-t border-creme/15 pt-6 text-sm text-creme/70 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <Link to="/termos" className="hover:text-creme hover:underline">Termos e condições</Link>
-            <Link to="/termos#cancelamento" className="hover:text-creme hover:underline">Cancelamento</Link>
-            <Link to="/privacidade" className="hover:text-creme hover:underline">Privacidade e cookies</Link>
+            <button type="button" onClick={() => abrir('termos')} className="hover:text-creme hover:underline">Termos e condições</button>
+            <button type="button" onClick={() => abrir('cancelamento')} className="hover:text-creme hover:underline">Cancelamento</button>
+            <button type="button" onClick={() => abrir('privacidade')} className="hover:text-creme hover:underline">Privacidade e cookies</button>
             <a href="https://www.livroreclamacoes.pt" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-creme hover:underline">
               Livro de Reclamações Eletrónico <ArrowUpRight size={14} aria-hidden />
             </a>
@@ -198,10 +202,11 @@ function Rodape() {
             </a>
           </div>
           <p className="numeros">
-            © {ano} Casas do Beco · Alojamento Local n.º {contactos.rnal ?? <em className="por-preencher text-creme">RNAL por confirmar</em>}
+            © {ano} Casas do Beco{contactos.rnal && ` · Alojamento Local n.º ${contactos.rnal}`}
           </p>
         </div>
       </div>
+      <InfoLegal aberto={legal !== null} separador={separador} mudar={setSeparador} fechar={() => setLegal(null)} />
     </footer>
   );
 }

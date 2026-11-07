@@ -2,9 +2,9 @@ import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTopo } from '../Estrutura';
 import { EmblemaDesenhado, Logo } from '../Marca';
-import { Capela, Colina, Estandarte, Melancia } from '../desenhos';
+import { Capela, Linha, Estandarte, Melancia } from '../desenhos';
 import { Acende, aposAbertura, FotoPorFazer, GRANDE, gsap, Imagem, Ligacao, Linhas, Revela, semMovimento, useGSAP } from '../kit';
-import { contactos, fotos, pontos, PROVISORIO } from '../dados';
+import { contactos, fotos, pontos, telefoneLink } from '../dados';
 
 export default function Inicio() {
   useTopo('escuro');
@@ -146,7 +146,7 @@ function OMapa() {
   const rota = 'M1465 242 Q1390 232 1309 251 Q1220 290 1150 383 Q1070 340 974 356 Q790 350 601 391 L588 416 Q545 360 522 291 Q300 320 100 407 Q55 440 19 475';
   return (
     <section ref={ref} className="relative bg-musgo text-creme">
-      <Colina className="absolute inset-x-0 bottom-full" />
+      <Linha className="absolute inset-x-0 top-0" />
       <div className="contentor grid gap-14 py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)] lg:gap-16 lg:py-32">
         <div className="flex flex-col">
           <Capela className="mb-10 h-28 w-auto self-start text-ocre lg:h-40" />
@@ -190,7 +190,6 @@ function AsTradicoes() {
               <Estandarte className="mb-6 h-28 w-auto text-oliva" />
               <h3 className="titulo t-pequena">Procissão de <em>Santa Catarina de Sena</em></h3>
               <p className="mt-4 text-terra/85">A santa sai em andor florido pelos caminhos entre os pomares, com o estandarte à frente e quase toda a aldeia atrás.</p>
-              <p className="mt-3 text-sm"><em className="por-preencher">{PROVISORIO.dataSantaCatarina}</em></p>
             </div>
           </article>
           <article className="grid gap-8">
@@ -200,7 +199,6 @@ function AsTradicoes() {
               <div>
                 <h3 className="titulo t-pequena">Festival <em>da Melancia</em></h3>
                 <p className="mt-4 max-w-[52ch] text-terra/85">A melancia do Ladoeiro tem selo próprio e uma festa só para ela: bancas carregadas, música e a aldeia toda na rua.</p>
-                <p className="mt-3 text-sm"><em className="por-preencher">{PROVISORIO.dataFestival}</em></p>
               </div>
             </div>
           </article>
@@ -248,11 +246,11 @@ function SobreNos() {
         <div>
           <Linhas as="h2" className="titulo t-grande">Uma família <em>da terra.</em></Linhas>
           <p className="corrido mt-8 text-[1.15rem] leading-relaxed text-terra/90">
-            As Casas do Beco são de uma família do Ladoeiro que decidiu abrir a porta a quem vem de fora. <em className="por-preencher">{PROVISORIO.donos}</em> recebem cada hóspede pessoalmente e sabem dizer onde se come bem, a que horas abre a loja e quando é a próxima festa.
+            As Casas do Beco são de uma família do Ladoeiro que decidiu abrir a porta a quem vem de fora. {contactos.donos} recebem cada hóspede pessoalmente e sabem dizer onde se come bem, a que horas abre a loja e quando é a próxima festa.
           </p>
           <dl className="mt-10 grid gap-5 border-t border-terra/15 pt-8 sm:grid-cols-2">
             <div><dt className="text-sm text-terra/70">E-mail</dt><dd className="mt-1 break-all"><a href={`mailto:${contactos.email}`} className="underline">{contactos.email}</a></dd></div>
-            <div><dt className="text-sm text-terra/70">Telefone</dt><dd className="mt-1">{contactos.telefone ?? <em className="por-preencher">por confirmar</em>}</dd></div>
+            <div><dt className="text-sm text-terra/70">Telefone</dt><dd className="mt-1"><a href={telefoneLink} className="underline">{contactos.telefone}</a></dd></div>
           </dl>
           <Ligacao para="/sobre-nos" className="mt-12">Sobre nós e contactos</Ligacao>
         </div>

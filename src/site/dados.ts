@@ -1,5 +1,4 @@
-// Conteúdo do site num só sítio. O que ainda não é verdade confirmada vai marcado em PROVISORIO
-// e aparece no site com a classe .por-preencher.
+// Conteúdo do site num só sítio. O que ainda falta confirmar aparece no site com a classe .por-preencher.
 
 export type Foto = { nome: string; alt: string; l: number; a: number; posicao?: string };
 
@@ -50,11 +49,13 @@ export const paginas = [
   { para: '/sobre-nos', nome: 'Sobre nós', foto: fotos.largo },
 ];
 
-// Contactos. O e-mail vem do site anterior; o resto falta confirmar com os donos.
+// Contactos e donos, confirmados pelo Eduardo a 07/11/2026. O n.º RNAL ainda não existe: enquanto for
+// null não aparece no site.
 export const contactos = {
   email: 'casasdobecoladoeiro@gmail.com',
-  telefone: null as string | null,
+  telefone: '+351 937 601 264',
   rnal: null as string | null,
+  donos: 'Domingos Santos e Sandy Moura',
   morada: 'Ladoeiro, Idanha-a-Nova · Beira Baixa',
 };
 
@@ -82,9 +83,4 @@ export const pontos: Ponto[] = [
     texto: 'O recinto onde a aldeia celebra a melancia do Ladoeiro, com bancas, música e muita fruta.' },
 ];
 
-// Datas e factos das festas por confirmar com os donos.
-export const PROVISORIO = {
-  dataSantaCatarina: 'data por confirmar',
-  dataFestival: 'data por confirmar',
-  donos: 'nomes dos donos por confirmar',
-};
+export const telefoneLink = `tel:${contactos.telefone.replace(/\s/g, '')}`;
