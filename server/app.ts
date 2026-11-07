@@ -20,7 +20,9 @@ const routes:Record<string,Routes>={
  '/api/admin/operations':operations,'/api/admin/configuration':configuration,
  '/api/admin/history':history,'/api/admin/sessions':sessions,'/api/contact':contact,
 };
-export const publicPages=new Set(['/','/sobre-nos','/onde-estamos','/contactos','/casas/nascente','/casas/poente']);
+export const publicPages=new Set(['/','/casa','/mapa','/reservas','/tradicoes','/sobre-nos','/termos','/privacidade']);
+// Old public addresses keep working after the site restructure.
+export const legacyRedirects:Record<string,string>={'/onde-estamos':'/mapa','/contactos':'/sobre-nos#contactos','/casas':'/reservas','/casas/nascente':'/reservas','/casas/poente':'/reservas'};
 export const adminPages=new Set(['','login','security','history','sessions','calendar','reservations','finance','recover','reset-password']);
 export const protectedPath=(path:string)=>path==='/admin'||path.startsWith('/admin/')||path.startsWith('/api/admin/')||path.startsWith('/api/auth/');
 export function securityHeaders(path:string){
