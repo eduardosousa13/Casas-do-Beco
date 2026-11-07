@@ -7,5 +7,4 @@ await build({entryPoints:['server/index.ts'],outfile:'dist/server/index.mjs',bun
 await build({entryPoints:['pms/migrate.ts','pms/admin.ts','pms/bootstrap-owner.ts','pms/worker-cli.ts','pms/alerts-cli.ts','pms/email-cli.ts'],outdir:'dist/pms',outExtension:{'.js':'.mjs'},bundle:true,platform:'node',format:'esm',target:'node22',packages:'external'});
 await cp('pms/migrations','dist/pms/migrations',{recursive:true});
 await cp('server/templates','dist/server/templates',{recursive:true});
-await cp('src/assets','dist/client/src/assets',{recursive:true});
 console.log('Node server and public assets built.');

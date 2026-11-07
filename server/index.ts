@@ -5,7 +5,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import type {ViteDevServer} from 'vite';
 import {webRequest,clientIp,sendResponse} from './transport';
-import {handleApi,adminBootstrap,publicPages,securityHeaders,bootstrapJson} from './app';
+import {handleApi,adminBootstrap,publicPages,legacyRedirects,securityHeaders,bootstrapJson} from './app';
 import {staticResponse} from './static';
 import {database} from '../pms/db';
 import {runWorker} from '../pms/worker';
@@ -35,6 +35,7 @@ const server=createServer({requestTimeout:15000,headersTimeout:10000},async(req,
    await sendResponse(req,res,new Response((await html('admin.html',req.url||'/admin')).replace('__ADMIN_BOOTSTRAP__',bootstrapJson(boot)),{headers:{'Content-Type':'text/html; charset=utf-8'}}));return;
   }
   if(publicPages.has(pathname)){await sendResponse(req,res,new Response(await html('index.html',req.url||'/'),{headers:{'Content-Type':'text/html; charset=utf-8'}}));return;}
+  if(legacyRedirects[pathname]){res.writeHead(301,{Location:legacyRedirects[pathname]});res.end();return;}
   if(pathname==='/reserva/resultado'||pathname==='/reserva/cancelada'){
    const name=pathname.endsWith('resultado')?'resultado':'cancelada';
    const file=dev?path.join(root,`server/templates/reserva-${name}.html`):fileURLToPath(new URL(`./templates/reserva-${name}.html`,import.meta.url));
@@ -42,8 +43,10 @@ const server=createServer({requestTimeout:15000,headersTimeout:10000},async(req,
   }
   // Never expose the admin template directly, bypassing its server-side gate.
   if(pathname==='/admin.html'){res.writeHead(404);res.end('Página não encontrada.');return;}
-  if(dev){vite!.middlewares(req,res,()=>{if(!res.writableEnded){res.writeHead(404);res.end('Página não encontrada.');}});return;}
-  await sendResponse(req,res,await staticResponse(request,clientRoot)||new Response('Página não encontrada.',{status:404}));
+  // Unknown page addresses get the site shell with a 404 status, so the visitor sees the designed 404 page.
+  const notFound=async()=>/\.[a-z0-9]+$/i.test(pathname)?new Response('Página não encontrada.',{status:404}):new Response(await html('index.html',req.url||'/'),{status:404,headers:{'Content-Type':'text/html; charset=utf-8'}});
+  if(dev){vite!.middlewares(req,res,()=>{if(!res.writableEnded)void notFound().then(r=>sendResponse(req,res,r));});return;}
+  await sendResponse(req,res,await staticResponse(request,clientRoot)||await notFound());
  }catch(error){
   if(error instanceof Error&&error.message==='BODY_TOO_LARGE'){if(!res.headersSent){res.writeHead(413,{'Connection':'close','Content-Type':'application/json','Cache-Control':'no-store'});res.end('{"error":"Pedido demasiado longo."}');}return;}
   if(error instanceof Error&&error.message==='INVALID_URL'){res.writeHead(400,{'Cache-Control':'no-store'});res.end('Pedido inválido.');return;}
