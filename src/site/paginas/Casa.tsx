@@ -8,10 +8,9 @@ import { fotos, type Foto } from '../dados';
 const galeria: { foto: Foto; legenda: string }[] = [
   { foto: fotos.fachada, legenda: 'A rua e a porta' },
   { foto: fotos.entrada, legenda: 'Entrada' },
-  { foto: fotos.sala, legenda: 'Sala' },
   { foto: fotos.cozinha, legenda: 'Cozinha' },
-  { foto: fotos.escada, legenda: 'Escada' },
   { foto: fotos.quarto, legenda: 'Quarto' },
+  { foto: fotos.escada, legenda: 'Escada' },
   { foto: fotos.janela, legenda: 'Janela do quarto' },
   { foto: fotos.banho, legenda: 'Casa de banho' },
   { foto: fotos.placa, legenda: 'Pormenor' },
@@ -36,7 +35,7 @@ export default function Casa() {
       <div className="contentor">
         <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
           <Linhas as="h1" imediato className="titulo t-gigante">A <em>casa</em></Linhas>
-          <p className="max-w-[34ch] text-terra/80">Entrada, sala, cozinha, quartos e casa de banho. Toque numa fotografia para a ver maior.</p>
+          <p className="max-w-[34ch] text-terra/80">Entrada, cozinha, quartos e casa de banho. Toque numa fotografia para a ver maior.</p>
         </div>
 
         <ul className="mt-16 grid grid-cols-2 gap-3 sm:gap-5 lg:mt-24 lg:grid-cols-12 lg:gap-6">
@@ -67,12 +66,11 @@ const lugar = [
   'col-span-2 lg:col-span-12',
   'lg:col-span-5',
   'lg:col-span-4 lg:col-start-7 lg:mt-24',
-  'col-span-2 sm:col-span-1 lg:col-span-6 lg:col-start-2',
-  'lg:col-span-3 lg:col-start-9 lg:-mt-16',
-  'col-span-2 lg:col-span-7 lg:col-start-1',
-  'lg:col-span-4 lg:col-start-9 lg:mt-20',
-  'lg:col-span-4 lg:col-start-2',
-  'lg:col-span-5 lg:col-start-7 lg:mt-28',
+  'col-span-2 lg:col-span-7 lg:col-start-2 lg:mt-8',
+  'lg:col-span-3 lg:col-start-10 lg:mt-24',
+  'lg:col-span-3 lg:col-start-2 lg:mt-8',
+  'lg:col-span-4 lg:col-start-6 lg:mt-24',
+  'lg:col-span-3 lg:col-start-10',
 ];
 
 function Visor({ itens, indice, mudar }: { itens: { foto: Foto; legenda: string }[]; indice: number | null; mudar: (i: number | null) => void }) {

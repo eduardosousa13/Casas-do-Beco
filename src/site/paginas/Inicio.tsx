@@ -86,7 +86,7 @@ function Manifesto() {
   );
 }
 
-const fitaCasa = [fotos.entrada, fotos.cozinha, fotos.quarto, fotos.sala, fotos.banho, fotos.escada, fotos.placa];
+const fitaCasa = [fotos.entrada, fotos.cozinha, fotos.quarto, fotos.banho, fotos.escada, fotos.placa];
 
 function ACasa() {
   const ref = useRef<HTMLElement>(null);
@@ -118,8 +118,9 @@ function ACasa() {
       </div>
       <div data-palco className="overflow-hidden pb-24 lg:flex lg:h-dvh lg:items-center lg:pb-0">
         <ul data-pista className="flex items-center snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] sm:px-8 lg:w-max lg:gap-8 lg:overflow-visible lg:px-14 lg:pb-0">
-          {fitaCasa.map((foto, i) => (
-            <li key={foto.nome} className={`relative shrink-0 snap-center overflow-hidden rounded-[2px] bg-palha ${foto.a > foto.l ? 'aspect-[3/4] w-[72vw] sm:w-[44vw] lg:h-[62vh] lg:w-auto' : 'aspect-[4/3] w-[86vw] sm:w-[60vw] lg:h-[46vh] lg:w-auto'} ${i % 2 ? 'lg:translate-y-[9vh]' : 'lg:-translate-y-[7vh]'}`}>
+          {/* Todas à mesma altura e alinhadas; no telemóvel a altura limita-se para a horizontal caber no ecrã. */}
+          {fitaCasa.map(foto => (
+            <li key={foto.nome} className={`relative h-[min(56svh,64vw)] w-auto shrink-0 snap-center overflow-hidden rounded-[2px] bg-palha lg:h-[62vh] ${foto.a > foto.l ? 'aspect-[3/4]' : 'aspect-[4/3]'}`}>
               <Link to="/casa" aria-label={`${foto.alt}. Ver todas as fotografias da casa`} className="block h-full w-full">
                 <Imagem foto={foto} sizes="(min-width: 1024px) 45vw, 80vw" className="h-full w-full object-cover" />
               </Link>
