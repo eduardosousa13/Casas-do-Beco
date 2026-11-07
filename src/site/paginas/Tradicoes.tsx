@@ -16,7 +16,7 @@ export default function Tradicoes() {
 
   return (
     <>
-      <section ref={ref} className="relative h-[92svh] min-h-[34rem] overflow-hidden bg-noite text-creme">
+      <section ref={ref} className="relative h-dvh min-h-[34rem] overflow-hidden bg-noite text-creme">
         <div data-fundo className="absolute inset-0">
           <Imagem foto={fotos.colheita} prioridade sizes="100vw" className="h-full w-full object-cover" />
         </div>

@@ -52,8 +52,8 @@ function Capa() {
   }, { scope: ref });
 
   return (
-    <section ref={ref} className="relative h-[100svh] lg:h-[150vh]" aria-label="Início">
-      <div className="sticky top-0 h-[100svh] overflow-hidden bg-noite text-cal">
+    <section ref={ref} className="relative h-dvh lg:h-[150dvh]" aria-label="Início">
+      <div className="sticky top-0 h-dvh overflow-hidden bg-noite text-cal">
         <div data-fundo className="absolute inset-0 will-change-transform">
           <Imagem foto={fotos.hero} prioridade sizes="100vw" className="h-full w-full object-cover" />
         </div>
@@ -130,7 +130,7 @@ function ACasa() {
         </div>
         <Ligacao para="/casa">Ver as fotografias</Ligacao>
       </div>
-      <div data-palco className="overflow-hidden pb-24 lg:flex lg:h-screen lg:items-center lg:pb-0">
+      <div data-palco className="overflow-hidden pb-24 lg:flex lg:h-dvh lg:items-center lg:pb-0">
         <ul data-pista className="flex items-center snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] sm:px-8 lg:w-max lg:gap-8 lg:overflow-visible lg:px-14 lg:pb-0">
           {fitaCasa.map((foto, i) => (
             <li key={foto.nome} className={`relative shrink-0 snap-center overflow-hidden rounded-[2px] bg-palha ${foto.a > foto.l ? 'aspect-[3/4] w-[72vw] sm:w-[44vw] lg:h-[62vh] lg:w-auto' : 'aspect-[4/3] w-[86vw] sm:w-[60vw] lg:h-[46vh] lg:w-auto'} ${i % 2 ? 'lg:translate-y-[9vh]' : 'lg:-translate-y-[7vh]'}`}>
@@ -245,10 +245,10 @@ function Reservar() {
 
   return (
     <section ref={ref} className="relative bg-creme">
-      <div data-janela className="relative min-h-[100svh] overflow-hidden bg-noite text-creme">
+      <div data-janela className="relative min-h-dvh overflow-hidden bg-noite text-creme">
         <Imagem foto={fotos.fachada} sizes="100vw" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgb(38_50_31/0.85),rgb(38_50_31/0.25)_55%,rgb(38_50_31/0.35))]" />
-        <div className="contentor relative flex min-h-[100svh] flex-col justify-end gap-10 pb-14 pt-32 lg:pb-20">
+        <div className="contentor relative flex min-h-dvh flex-col justify-end gap-10 pb-14 pt-32 lg:pb-20">
           <Linhas as="h2" className="titulo t-gigante max-w-[11ch]">Fique <em>no Beco.</em></Linhas>
           <div className="flex flex-wrap items-end justify-between gap-8">
             <p className="corrido text-creme/90">Escolha a casa e as datas. As reservas são feitas diretamente connosco, quarto a quarto.</p>

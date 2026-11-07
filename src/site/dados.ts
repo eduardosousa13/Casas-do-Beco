@@ -66,7 +66,7 @@ export const pontos: Ponto[] = [
     texto: 'Numa rua sossegada da aldeia. É daqui que se parte a pé para tudo o resto.' },
   { id: 'fonte', x: 601, y: 391, nome: 'Fonte Grande D. Sebastião', tipo: 'Património', foto: fotos.fonte,
     texto: 'Fonte de granito de 1571, do tempo de D. Sebastião, com a coroa e o brasão real esculpidos e o tanque à frente.' },
-  { id: 'largo', x: 588, y: 416, nome: 'Largo do Cruzeiro do Ladoeiro', tipo: 'Centro da aldeia', foto: fotos.largo,
+  { id: 'largo', x: 588, y: 446, nome: 'Largo do Cruzeiro do Ladoeiro', tipo: 'Centro da aldeia', foto: fotos.largo,
     texto: 'O pinheiro manso, o cruzeiro e a esplanada à sombra da laranjeira, mesmo ao lado da Fonte Grande.' },
   { id: 'casa-santos', x: 100, y: 407, nome: 'Casa Santos', tipo: 'Comércio local', foto: fotos.casaSantos,
     texto: 'A loja da aldeia: drogaria, gás e um pouco de tudo o que faz falta numa casa.' },

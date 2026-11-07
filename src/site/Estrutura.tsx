@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { ArrowUpRight, X } from 'lucide-react';
 import { Emblema, EmblemaDesenhado } from './Marca';
 import { Colina } from './desenhos';
-import { gsap, Imagem, paraOTopo, ScrollTrigger, semMovimento } from './kit';
+import { gsap, Imagem, irPara, ligarScrollSuave, paraOTopo, prenderScroll, ScrollTrigger, semMovimento } from './kit';
 import { contactos, paginas } from './dados';
 
 // Cada página diz se o topo é escuro (fotografia por trás) ou claro, para o cabeçalho escolher a cor.
@@ -23,7 +23,7 @@ export default function Estrutura() {
   useLayoutEffect(() => {
     if (hash) {
       const alvo = document.getElementById(hash.slice(1));
-      if (alvo) { requestAnimationFrame(() => alvo.scrollIntoView()); return; }
+      if (alvo) { requestAnimationFrame(() => irPara(alvo)); return; }
     }
     paraOTopo();
   }, [pathname, hash]);
@@ -34,6 +34,7 @@ export default function Estrutura() {
     return () => { clearTimeout(t); removeEventListener('load', carregou); };
   }, [pathname]);
   useEffect(() => { primeira.current = false; }, []);
+  useEffect(() => ligarScrollSuave(), []);
 
   return (
     <TopoCtx.Provider value={setTopo}>
@@ -107,20 +108,20 @@ function Menu({ aberto, fechar }: { aberto: boolean; fechar: () => void }) {
     if (!d) return;
     if (aberto && !d.open) {
       d.showModal();
-      document.documentElement.style.overflow = 'hidden';
+      prenderScroll(true);
       if (!semMovimento()) {
         gsap.fromTo(d, { clipPath: 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.9, ease: 'expo.inOut' });
         gsap.from(d.querySelectorAll('[data-item]'), { yPercent: 110, duration: 1, ease: 'expo.out', stagger: 0.05, delay: 0.35 });
       }
     } else if (!aberto && d.open) {
-      const acabar = () => { d.close(); document.documentElement.style.overflow = ''; };
+      const acabar = () => { d.close(); prenderScroll(false); };
       if (semMovimento()) acabar();
       else gsap.to(d, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.7, ease: 'expo.inOut', onComplete: acabar });
     }
   }, [aberto]);
 
   return (
-    <dialog ref={ref} aria-label="Menu" onCancel={e => { e.preventDefault(); fechar(); }}
+    <dialog ref={ref} aria-label="Menu" data-lenis-prevent onCancel={e => { e.preventDefault(); fechar(); }}
       className="m-0 h-dvh max-h-none w-full max-w-none bg-musgo p-0 text-creme backdrop:bg-transparent">
       <div className="contentor flex h-full flex-col">
         <div className="grid h-[4.5rem] grid-cols-[1fr_auto_1fr] items-center">

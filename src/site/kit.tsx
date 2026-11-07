@@ -5,10 +5,14 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 import { useGSAP } from '@gsap/react';
+import Lenis from 'lenis';
+import 'lenis/dist/lenis.css';
 import { ArrowRight } from 'lucide-react';
 import { fontes, type Foto } from './dados';
 
 gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin, useGSAP);
+// No telemóvel a barra do navegador encolhe e cresce ao fazer scroll; isso não deve recalcular as animações.
+ScrollTrigger.config({ ignoreMobileResize: true });
 export { gsap, ScrollTrigger, useGSAP };
 
 // Sem movimento: preferência do sistema, ou ?estatico no endereço (para rever o estado final).
@@ -146,7 +150,31 @@ export function FotoPorFazer({ nome, className = '', escuro = false }: { nome: s
   );
 }
 
-// Volta ao topo ao mudar de página (o scroll é o nativo).
-export function paraOTopo() {
-  window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+// Scroll suave com a roda e o trackpad (no toque fica o nativo do telemóvel). Corre no relógio do GSAP
+// para os ScrollTrigger acompanharem cada fotograma.
+let lenis: Lenis | null = null;
+export function ligarScrollSuave() {
+  if (semMovimento()) return () => {};
+  const l = new Lenis({ lerp: 0.085, wheelMultiplier: 0.9 });
+  l.on('scroll', ScrollTrigger.update);
+  const tique = (t: number) => l.raf(t * 1000);
+  gsap.ticker.add(tique);
+  gsap.ticker.lagSmoothing(0);
+  lenis = l;
+  return () => { gsap.ticker.remove(tique); l.destroy(); lenis = null; };
 }
+
+// Parar o scroll da página por trás de um menu ou de uma fotografia aberta.
+export function prenderScroll(sim: boolean) {
+  document.documentElement.style.overflow = sim ? 'hidden' : '';
+  if (sim) lenis?.stop(); else lenis?.start();
+}
+
+// Ir para um ponto da página (topo, âncora), suave ou de imediato.
+export function irPara(alvo: number | HTMLElement, suave = false) {
+  if (lenis) { lenis.scrollTo(alvo, { immediate: !suave, force: true, duration: suave ? 1.4 : undefined }); return; }
+  const top = typeof alvo === 'number' ? alvo : alvo.getBoundingClientRect().top + scrollY;
+  window.scrollTo({ top, behavior: (suave && !semMovimento() ? 'smooth' : 'instant') as ScrollBehavior });
+}
+
+export const paraOTopo = () => irPara(0);

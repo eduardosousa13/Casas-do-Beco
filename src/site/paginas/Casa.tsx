@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useTopo } from '../Estrutura';
-import { gsap, Imagem, Ligacao, Linhas, semMovimento, useGSAP } from '../kit';
+import { gsap, Imagem, Ligacao, Linhas, prenderScroll, semMovimento, useGSAP } from '../kit';
 import { fotos, type Foto } from '../dados';
 
 // Só fotografias: a ordem segue uma visita à casa, da rua aos quartos.
@@ -80,7 +80,7 @@ function Visor({ itens, indice, mudar }: { itens: { foto: Foto; legenda: string 
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
-    if (indice !== null && !d.open) d.showModal();
+    if (indice !== null && !d.open) { d.showModal(); prenderScroll(true); }
     if (indice === null && d.open) d.close();
   }, [indice]);
   useEffect(() => {
@@ -95,7 +95,7 @@ function Visor({ itens, indice, mudar }: { itens: { foto: Foto; legenda: string 
 
   const atual = indice === null ? null : itens[indice];
   return (
-    <dialog ref={ref} aria-label="Fotografia ampliada" onClose={() => mudar(null)}
+    <dialog ref={ref} aria-label="Fotografia ampliada" data-lenis-prevent onClose={() => { prenderScroll(false); mudar(null); }}
       className="m-0 h-dvh max-h-none w-full max-w-none bg-noite/95 p-0 text-creme backdrop:bg-noite/70">
       {atual && (
         <div className="grid h-full grid-rows-[auto_1fr_auto]">
