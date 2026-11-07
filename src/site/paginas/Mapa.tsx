@@ -40,7 +40,7 @@ export default function Mapa() {
                 {p.foto ? <Revela foto={p.foto} sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw" className="aspect-[4/3] rounded-[2px]" />
                   : <FotoPorFazer nome={p.nome} className="aspect-[4/3]" />}
                 <h3 className="titulo t-pequena mt-6">{p.nome}</h3>
-                <p className="mt-1 text-sm font-medium text-oliva">{p.tipo}</p>
+                <p className="mt-1 text-sm font-medium text-musgo">{p.tipo}</p>
                 <p className="mt-3 text-terra/85">{p.texto}</p>
                 <button type="button" onClick={() => { escolher(p); irPara(0, true); }}
                   className="mt-4 text-sm font-medium underline underline-offset-4 hover:text-musgo">Ver no mapa</button>
@@ -49,7 +49,7 @@ export default function Mapa() {
           </ul>
           <div className="mt-24 flex flex-wrap items-end justify-between gap-8 border-t border-terra/15 pt-10">
             <p className="titulo t-media max-w-[20ch]">Ficar no meio da aldeia <em>muda a viagem.</em></p>
-            <Ligacao para="/reservas">Reservar</Ligacao>
+            <Ligacao para="/reservas" principal>Reservar</Ligacao>
           </div>
         </div>
       </section>
@@ -188,7 +188,7 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
             <button key={p.id} type="button" onClick={() => escolher(p)} aria-pressed={ativo?.id === p.id}
               className="group absolute origin-bottom [transform:translate(-50%,-100%)_scale(var(--inv,1))]"
               style={{ left: p.x, top: p.y }}>
-              <span className={`mb-2 block whitespace-nowrap rounded-full bg-noite/85 px-3 py-1.5 text-[0.8rem] font-medium text-creme transition-[opacity,transform] duration-300 ease-(--ease-sai) group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 ${ativo?.id === p.id || p.id === 'casa' ? 'opacity-100' : 'translate-y-1 opacity-0'}`}>{p.nome}</span>
+              <span className={`mb-2 block whitespace-nowrap bg-noite/85 px-3 py-1.5 text-[0.8rem] font-medium text-creme transition-[opacity,transform] duration-300 ease-(--ease-sai) group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 ${ativo?.id === p.id || p.id === 'casa' ? 'opacity-100' : 'translate-y-1 opacity-0'}`}>{p.nome}</span>
               <span className={`relative mx-auto block size-5 rounded-full border-4 border-creme shadow-[0_2px_10px_rgb(0_0_0/0.45)] ${p.id === 'casa' ? 'bg-ocre' : 'bg-telha'}`}>
                 <span className="absolute inset-[-4px] animate-ping rounded-full border-2 border-creme/60 motion-reduce:hidden" />
               </span>
@@ -200,12 +200,12 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
       <p className={`pointer-events-none absolute bottom-6 left-4 right-24 text-sm text-creme/90 transition-opacity duration-700 sm:left-8 ${aviso ? 'opacity-100' : 'opacity-0'}`}>
         Arraste para explorar e toque nos pontos. Para aproximar, use os botões ou dois dedos.
       </p>
-      <p role="status" className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-noite/85 px-5 py-3 text-sm transition-opacity duration-300 ${dica ? 'opacity-100' : 'opacity-0'}`}>
+      <p role="status" className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-noite/85 px-5 py-3 text-sm transition-opacity duration-300 ${dica ? 'opacity-100' : 'opacity-0'}`}>
         Use Ctrl + roda do rato para aproximar o mapa
       </p>
       <div className="absolute bottom-6 right-4 flex flex-col gap-2 sm:right-8">
-        <button type="button" onClick={() => zoom(1.35)} aria-label="Aproximar" className="grid size-11 place-items-center rounded-full bg-creme text-musgo shadow-md hover:bg-linho"><Plus size={20} aria-hidden /></button>
-        <button type="button" onClick={() => zoom(1 / 1.35)} aria-label="Afastar" className="grid size-11 place-items-center rounded-full bg-creme text-musgo shadow-md hover:bg-linho"><Minus size={20} aria-hidden /></button>
+        <button type="button" onClick={() => zoom(1.35)} aria-label="Aproximar" className="grid size-11 place-items-center border border-musgo/20 bg-creme text-musgo hover:bg-linho"><Plus size={20} aria-hidden /></button>
+        <button type="button" onClick={() => zoom(1 / 1.35)} aria-label="Afastar" className="grid size-11 place-items-center border border-musgo/20 bg-creme text-musgo hover:bg-linho"><Minus size={20} aria-hidden /></button>
       </div>
     </div>
   );
@@ -220,11 +220,11 @@ function Painel({ ponto, fechar }: { ponto: Ponto | null; fechar: () => void }) 
       className={`absolute bottom-4 left-4 right-4 z-10 max-h-[62svh] overflow-auto rounded-[4px] bg-creme p-6 text-terra shadow-[0_30px_60px_-20px_rgb(0_0_0/0.55)] transition-transform duration-700 ease-(--ease-sai) md:bottom-auto md:left-auto md:right-8 md:top-24 md:w-[22rem] md:max-h-[calc(100svh-8rem)] ${ponto ? 'translate-y-0 md:translate-x-0' : 'translate-y-[calc(100%+2rem)] md:translate-x-[calc(100%+3rem)] md:translate-y-0'}`}>
       {p && (
         <>
-          <button type="button" onClick={fechar} aria-label="Fechar" className="absolute right-3 top-3 grid size-10 place-items-center rounded-full hover:bg-palha"><X size={20} aria-hidden /></button>
+          <button type="button" onClick={fechar} aria-label="Fechar" className="absolute right-3 top-3 grid size-10 place-items-center hover:bg-palha"><X size={20} aria-hidden /></button>
           {p.foto ? <div className="mb-5 aspect-[4/3] overflow-hidden rounded-[2px] bg-palha"><Imagem foto={p.foto} sizes="22rem" className="h-full w-full object-cover" /></div>
             : <FotoPorFazer nome={p.nome} className="mb-5 aspect-[4/3]" />}
           <h2 className="titulo t-pequena pr-8">{p.nome}</h2>
-          <p className="mt-1 text-sm font-medium text-oliva">{p.tipo}</p>
+          <p className="mt-1 text-sm font-medium text-musgo">{p.tipo}</p>
           <p className="mt-4 leading-relaxed">{p.texto}</p>
         </>
       )}

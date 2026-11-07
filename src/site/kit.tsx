@@ -126,16 +126,19 @@ export function Desenho({ children, className = '', viewBox, inicio = 'top 85%',
   );
 }
 
-// Ligação principal: texto e um círculo com a seta que se alarga ao passar o rato.
-export function Ligacao({ para, children, claro = false, className = '' }: { para: string; children: ReactNode; claro?: boolean; className?: string }) {
-  const cor = claro ? 'text-creme' : 'text-terra';
-  const circulo = claro ? 'bg-creme text-musgo' : 'bg-musgo text-creme';
+// Ligação entre páginas. A principal (uma por ecrã) é um botão de moldura fina; as outras são
+// ligações editoriais, em itálico com um traço por baixo (estilos .botao e .ligacao no index.css).
+export function Ligacao({ para, children, claro = false, principal = false, className = '' }: { para: string; children: ReactNode; claro?: boolean; principal?: boolean; className?: string }) {
+  if (principal) {
+    return (
+      <Link to={para} className={`botao ${claro ? 'botao-claro' : ''} ${className}`}>
+        {children} <ArrowRight size={16} strokeWidth={1.5} aria-hidden />
+      </Link>
+    );
+  }
   return (
-    <Link to={para} className={`group inline-flex items-center gap-4 ${cor} ${className}`}>
-      <span className="whitespace-nowrap text-[1.05rem] font-medium">{children}</span>
-      <span className={`relative grid h-11 w-16 place-items-center overflow-hidden rounded-full transition-[width] duration-500 ease-(--ease-sai) group-hover:w-20 ${circulo}`}>
-        <ArrowRight size={18} strokeWidth={1.6} className="transition-transform duration-500 ease-(--ease-sai) group-hover:translate-x-1" aria-hidden />
-      </span>
+    <Link to={para} className={`ligacao ${claro ? 'text-creme' : 'text-musgo'} ${className}`}>
+      {children} <ArrowRight size={18} strokeWidth={1.4} aria-hidden />
     </Link>
   );
 }

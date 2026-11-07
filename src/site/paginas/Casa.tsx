@@ -45,7 +45,7 @@ export default function Casa() {
                 <div data-foto className={`relative overflow-hidden rounded-[2px] bg-palha ${g.foto.a > g.foto.l ? 'aspect-[3/4]' : 'aspect-[4/3]'} ${i === 0 ? 'lg:aspect-[16/9]' : ''}`}>
                   <Imagem foto={g.foto} sizes={i === 0 ? '100vw' : '(min-width: 1024px) 40vw, 50vw'} className="h-full w-full object-cover transition-transform duration-[1.2s] ease-(--ease-sai) group-hover:scale-[1.04]" />
                 </div>
-                <span className="mt-3 block text-sm text-terra/75">{g.legenda}</span>
+                <span className="mt-3 block text-sm text-terra/80">{g.legenda}</span>
               </button>
             </li>
           ))}
@@ -53,7 +53,7 @@ export default function Casa() {
 
         <div className="mt-24 flex flex-wrap items-end justify-between gap-8 border-t border-terra/15 pt-10">
           <p className="titulo t-media max-w-[18ch]">Gostou? <em>Escolha as datas.</em></p>
-          <Ligacao para="/reservas">Reservar</Ligacao>
+          <Ligacao para="/reservas" principal>Reservar</Ligacao>
         </div>
       </div>
       <Visor itens={galeria} indice={aberta} mudar={setAberta} />
@@ -104,9 +104,9 @@ function Visor({ itens, indice, mudar }: { itens: { foto: Foto; legenda: string 
           <div className="relative min-h-0 px-4 sm:px-20">
             <Imagem key={atual.foto.nome} foto={atual.foto} sizes="100vw" className="mx-auto h-full w-auto max-w-full object-contain" />
             <button type="button" onClick={() => mudar((indice! - 1 + itens.length) % itens.length)} aria-label="Fotografia anterior"
-              className="absolute left-2 top-1/2 grid size-12 -translate-y-1/2 place-items-center rounded-full bg-creme/10 hover:bg-creme/20 sm:left-6"><ChevronLeft aria-hidden /></button>
+              className="absolute left-2 top-1/2 grid size-12 -translate-y-1/2 place-items-center border border-creme/30 bg-noite/40 hover:bg-creme/15 sm:left-6"><ChevronLeft aria-hidden /></button>
             <button type="button" onClick={() => mudar((indice! + 1) % itens.length)} aria-label="Fotografia seguinte"
-              className="absolute right-2 top-1/2 grid size-12 -translate-y-1/2 place-items-center rounded-full bg-creme/10 hover:bg-creme/20 sm:right-6"><ChevronRight aria-hidden /></button>
+              className="absolute right-2 top-1/2 grid size-12 -translate-y-1/2 place-items-center border border-creme/30 bg-noite/40 hover:bg-creme/15 sm:right-6"><ChevronRight aria-hidden /></button>
           </div>
           <p className="contentor py-6 text-center text-creme/85">{atual.legenda}</p>
         </div>

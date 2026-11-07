@@ -89,7 +89,7 @@ function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
             className={`transition-[opacity,transform] duration-700 ease-(--ease-sai) ${inicio && !desceu ? 'pointer-events-none -translate-y-2 opacity-0' : ''}`}>
             <Emblema className="h-11 w-auto" />
           </Link>
-          <Link to="/reservas" className={`justify-self-end rounded-full border px-5 py-2.5 text-[0.95rem] font-medium transition-colors duration-300 ${claro ? 'border-creme/60 hover:bg-creme hover:text-musgo' : 'border-terra/40 hover:border-musgo hover:bg-musgo hover:text-creme'}`}>
+          <Link to="/reservas" className={`botao botao-pequeno justify-self-end ${claro ? 'botao-claro' : ''}`}>
             Reservar
           </Link>
         </div>
@@ -130,7 +130,7 @@ function Menu({ aberto, fechar }: { aberto: boolean; fechar: () => void }) {
             <X size={22} strokeWidth={1.4} aria-hidden /> Fechar
           </button>
           <Link to="/" onClick={fechar} aria-label="Página inicial"><Emblema className="h-11 w-auto text-creme" /></Link>
-          <Link to="/reservas" onClick={fechar} className="justify-self-end rounded-full bg-creme px-5 py-2.5 text-[0.95rem] font-medium text-musgo">Reservar</Link>
+          <Link to="/reservas" onClick={fechar} className="botao botao-pequeno botao-claro botao-cheio justify-self-end">Reservar</Link>
         </div>
         <div className="grid flex-1 items-center gap-10 py-8 lg:grid-cols-[1.1fr_1fr]">
           <nav aria-label="Páginas">

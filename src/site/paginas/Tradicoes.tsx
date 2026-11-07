@@ -65,7 +65,7 @@ export default function Tradicoes() {
             <Acende className="mt-8 text-[1.2rem] leading-relaxed">
               Antes da festa há o trabalho. A melancia apanha-se à mão, campo a campo, de preferência quando o calor abranda. É um saber passado de geração em geração e uma das imagens mais fortes do verão no Ladoeiro.
             </Acende>
-            <Ligacao para="/reservas" className="mt-12">Venha numa destas semanas</Ligacao>
+            <Ligacao para="/reservas" principal className="mt-12">Venha numa destas semanas</Ligacao>
           </div>
           <Revela foto={fotos.melancia} sizes="(min-width: 1024px) 48vw, 90vw" className="aspect-[4/3] rounded-[2px] lg:order-1" />
         </div>

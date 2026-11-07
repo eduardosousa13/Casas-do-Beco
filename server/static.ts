@@ -8,7 +8,7 @@ export async function staticResponse(request:Request,root:string):Promise<Respon
  if(pathname.split('/').some(p=>p.startsWith('.'))||pathname.includes('\\')||pathname.includes('\0')||pathname==='/admin.html')return new Response('Página não encontrada',{status:404});
  const file=path.resolve(root,'.'+pathname),base=path.resolve(root)+path.sep;if(!file.startsWith(base))return new Response('Página não encontrada',{status:404});
  let size:number,modified:Date;try{const resolved=await realpath(file),realBase=(await realpath(root))+path.sep;if(!resolved.startsWith(realBase))return new Response('Página não encontrada',{status:404});const info=await stat(file);if(!info.isFile())return null;size=info.size;modified=info.mtime;}catch{return null;}
- const extension=path.extname(file),headers=new Headers({'Content-Type':mime[extension]||'application/octet-stream','X-Content-Type-Options':'nosniff','Cache-Control':/^\/assets\/.+-[\w-]{6,}\./.test(pathname)?'public, max-age=31536000, immutable':'public, max-age=0, must-revalidate','Last-Modified':modified.toUTCString()});
+ const extension=path.extname(file),headers=new Headers({'Content-Type':mime[extension]||'application/octet-stream','X-Content-Type-Options':'nosniff','Cache-Control':/^\/assets\/.+-[\w-]{6,}\./.test(pathname)?'public, max-age=31536000, immutable':pathname.startsWith('/img/')?'public, max-age=86400, stale-while-revalidate=604800':'public, max-age=0, must-revalidate','Last-Modified':modified.toUTCString()});
  const etag=`W/"${size}-${modified.getTime()}"`;headers.set('ETag',etag);
  if(request.headers.get('if-none-match')===etag)return new Response(null,{status:304,headers});
  let start=0,end=size-1,status=200;

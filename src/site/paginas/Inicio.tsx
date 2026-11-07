@@ -163,7 +163,7 @@ function OMapa() {
           {pontos.map(p => (
             <span key={p.id} data-pino className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: `${(p.x / 1774) * 100}%`, top: `${(p.y / 887) * 100}%` }} aria-hidden>
               <span className={`block size-4 rounded-full border-[3px] border-creme shadow-[0_2px_8px_rgb(0_0_0/0.4)] lg:size-5 ${p.id === 'casa' ? 'bg-ocre' : 'bg-telha'}`} />
-              {p.id === 'casa' && <span className="absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded-full bg-noite/85 px-3 py-1 text-xs font-medium">Casas do Beco</span>}
+              {p.id === 'casa' && <span className="absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap bg-noite/85 px-3 py-1 text-xs font-medium">Casas do Beco</span>}
             </span>
           ))}
         </Link>
@@ -230,7 +230,7 @@ function Reservar() {
           <Linhas as="h2" className="titulo t-gigante max-w-[11ch]">Fique <em>no Beco.</em></Linhas>
           <div className="flex flex-wrap items-end justify-between gap-8">
             <p className="corrido text-creme/90">Escolha a casa e as datas. As reservas são feitas diretamente connosco, quarto a quarto.</p>
-            <Ligacao para="/reservas" claro>Ver casas e datas</Ligacao>
+            <Ligacao para="/reservas" claro principal>Ver casas e datas</Ligacao>
           </div>
         </div>
       </div>
@@ -249,8 +249,8 @@ function SobreNos() {
             As Casas do Beco são de uma família do Ladoeiro que decidiu abrir a porta a quem vem de fora. {contactos.donos} recebem cada hóspede pessoalmente e sabem dizer onde se come bem, a que horas abre a loja e quando é a próxima festa.
           </p>
           <dl className="mt-10 grid gap-5 border-t border-terra/15 pt-8 sm:grid-cols-2">
-            <div><dt className="text-sm text-terra/70">E-mail</dt><dd className="mt-1 break-all"><a href={`mailto:${contactos.email}`} className="underline">{contactos.email}</a></dd></div>
-            <div><dt className="text-sm text-terra/70">Telefone</dt><dd className="mt-1"><a href={telefoneLink} className="underline">{contactos.telefone}</a></dd></div>
+            <div><dt className="text-sm text-terra/80">E-mail</dt><dd className="mt-1 break-all"><a href={`mailto:${contactos.email}`} className="underline">{contactos.email}</a></dd></div>
+            <div><dt className="text-sm text-terra/80">Telefone</dt><dd className="mt-1"><a href={telefoneLink} className="underline">{contactos.telefone}</a></dd></div>
           </dl>
           <Ligacao para="/sobre-nos" className="mt-12">Sobre nós e contactos</Ligacao>
         </div>

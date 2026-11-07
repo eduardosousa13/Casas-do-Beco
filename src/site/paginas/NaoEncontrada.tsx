@@ -11,7 +11,7 @@ export default function NaoEncontrada() {
         <div>
           <h1 className="titulo t-gigante max-w-[12ch]">Este beco <em>não tem saída.</em></h1>
           <p className="corrido mt-8 text-[1.15rem] text-terra/85">Erro 404: a página que procura não existe ou mudou de sítio. Volte ao início e siga por outra rua.</p>
-          <Ligacao para="/" className="mt-10">Voltar ao início</Ligacao>
+          <Ligacao para="/" principal className="mt-10">Voltar ao início</Ligacao>
         </div>
       </div>
     </div>

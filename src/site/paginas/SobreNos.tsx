@@ -38,15 +38,15 @@ export default function SobreNos() {
               <Linhas as="h2" className="titulo t-grande">Fale <em>connosco</em></Linhas>
               <dl className="mt-12 grid gap-8">
                 <div>
-                  <dt className="text-sm text-terra/70">E-mail</dt>
+                  <dt className="text-sm text-terra/80">E-mail</dt>
                   <dd className="mt-1 text-lg"><a href={`mailto:${contactos.email}`} className="break-all underline hover:text-musgo">{contactos.email}</a></dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-terra/70">Telefone e WhatsApp</dt>
+                  <dt className="text-sm text-terra/80">Telefone e WhatsApp</dt>
                   <dd className="mt-1 text-lg"><a href={telefoneLink} className="underline">{contactos.telefone}</a></dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-terra/70">Onde estamos</dt>
+                  <dt className="text-sm text-terra/80">Onde estamos</dt>
                   <dd className="mt-1 text-lg">{contactos.morada}</dd>
                   <dd className="mt-1 text-terra/80">Cerca de 20 minutos de Castelo Branco.</dd>
                   <dd className="mt-3">
@@ -99,25 +99,25 @@ function Formulario() {
   return (
     <form onSubmit={enviar} className="grid gap-8 self-start sm:grid-cols-2">
       <label className="grid gap-1">
-        <span className="text-sm text-terra/75">Nome</span>
+        <span className="text-sm text-terra/80">Nome</span>
         <input name="nome" required minLength={2} maxLength={100} autoComplete="name" className={campo} />
       </label>
       <label className="grid gap-1">
-        <span className="text-sm text-terra/75">E-mail</span>
+        <span className="text-sm text-terra/80">E-mail</span>
         <input name="email" type="email" required maxLength={254} autoComplete="email" className={campo} />
       </label>
       <label className="grid gap-1 sm:col-span-2">
-        <span className="text-sm text-terra/75">Telefone <span className="text-terra/60">(opcional)</span></span>
+        <span className="text-sm text-terra/80">Telefone <span className="text-terra/80">(opcional)</span></span>
         <input name="telefone" type="tel" maxLength={40} autoComplete="tel" className={campo} />
       </label>
       <label className="grid gap-1 sm:col-span-2">
-        <span className="text-sm text-terra/75">Mensagem</span>
+        <span className="text-sm text-terra/80">Mensagem</span>
         <textarea name="mensagem" required minLength={10} maxLength={3000} rows={5} className={`${campo} resize-y`} placeholder="Datas, número de pessoas, perguntas…" />
       </label>
       {/* Campo escondido que só os robôs preenchem. */}
       <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[9999px] h-px w-px opacity-0" />
       <div className="flex flex-wrap items-center gap-6 sm:col-span-2">
-        <button type="submit" disabled={estado === 'a-enviar'} className="inline-flex items-center gap-3 rounded-full bg-musgo px-8 py-4 font-medium text-creme transition-colors hover:bg-noite disabled:cursor-wait disabled:opacity-60">
+        <button type="submit" disabled={estado === 'a-enviar'} className="botao botao-cheio">
           {estado === 'a-enviar' ? 'A enviar…' : 'Enviar mensagem'} <ArrowRight size={18} aria-hidden />
         </button>
         {estado === 'erro' && <p role="alert" className="text-telha">{erro} Pode também escrever para {contactos.email}.</p>}
