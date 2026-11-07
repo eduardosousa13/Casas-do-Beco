@@ -91,7 +91,7 @@ function Manifesto() {
             No Ladoeiro o dia mede-se pela luz. A planície aquece devagar, as oliveiras dão sombra à hora de almoço e, ao fim da tarde, a aldeia senta-se à porta. As Casas do Beco são casas de aldeia de uma família da terra, abertas a quem quer viver uns dias assim.
           </Acende>
           <div className="mt-14 grid max-w-xl gap-8 sm:grid-cols-2">
-            <p className="text-terra/85">A casa fica dentro da aldeia, a poucos passos do largo, da loja e da capela.</p>
+            <p className="text-terra/85">A casa fica dentro da aldeia, perto da Igreja Matriz.</p>
             <p className="text-terra/85">Reserva-se diretamente connosco, por quarto, sem plataformas pelo meio.</p>
           </div>
         </div>
@@ -155,7 +155,8 @@ function OMapa() {
     gsap.fromTo(el.querySelector('[data-rota]'), { drawSVG: '0%' }, { drawSVG: '100%', ease: 'none', scrollTrigger: st });
   }, { scope: ref });
 
-  const rota = 'M803 417 Q880 330 1002 341 Q1110 400 1096 512 Q900 620 661 497 Q520 420 532 319 Q900 160 1375 244';
+  // Percurso pelos pontos, da piscina à capela, a passar pela casa.
+  const rota = 'M1465 242 Q1390 232 1309 251 Q1220 290 1150 383 Q1070 340 974 356 Q790 350 601 391 L588 416 Q545 360 522 291 Q300 320 100 407 Q55 440 19 475';
   return (
     <section ref={ref} className="relative bg-musgo text-creme">
       <Colina className="absolute inset-x-0 bottom-full" />
@@ -163,7 +164,7 @@ function OMapa() {
         <div className="flex flex-col">
           <Capela className="mb-10 h-28 w-auto self-start text-ocre lg:h-40" />
           <Linhas as="h2" className="titulo t-grande">A aldeia inteira, <em>à porta.</em></Linhas>
-          <p className="corrido mt-6 text-creme/85">Veja o Ladoeiro de cima e descubra o que há à volta da casa: o largo, a capela, a loja, o recinto da festa. Quase tudo se faz a pé.</p>
+          <p className="corrido mt-6 text-creme/85">Veja o Ladoeiro de cima e descubra o que há à volta da casa: a igreja, a fonte de 1571, o largo do cruzeiro, o recinto da festa. Quase tudo se faz a pé.</p>
           <ul className="mt-10 grid gap-x-8 gap-y-3 text-creme/90 sm:grid-cols-2">
             {pontos.map(p => (
               <li key={p.id} className="flex items-center gap-3">

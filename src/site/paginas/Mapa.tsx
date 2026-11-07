@@ -15,7 +15,7 @@ export default function Mapa() {
 
   return (
     <>
-      <section className="relative bg-noite text-creme" aria-label="Mapa interativo do Ladoeiro">
+      <section className="relative overflow-hidden bg-noite text-creme" aria-label="Mapa interativo do Ladoeiro">
         <Visor ativo={ativo} escolher={escolher} ligar={ligar} />
         <div className={`pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-noite/80 to-transparent pb-24 pt-24 transition-opacity duration-500 lg:pt-28 ${ativo ? 'max-md:opacity-0' : ''}`}>
           <div className="contentor">
@@ -130,7 +130,7 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
 
     // Entrada: a aldeia inteira e depois a câmara aproxima-se da casa.
     centrar(L / 2, A / 2, minS(), false);
-    const t = window.setTimeout(() => centrar(860, 420, minS() * 1.5), 350);
+    const t = window.setTimeout(() => centrar(1060, 360, minS() * 1.5), 350);
     return () => {
       clearTimeout(t); clearTimeout(tempoDica);
       v.removeEventListener('pointerdown', baixo); v.removeEventListener('pointermove', mexe);
