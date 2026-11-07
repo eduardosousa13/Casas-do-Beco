@@ -1,25 +1,8 @@
 import { useRef } from 'react';
-import { cheio, emblema, TRANSFORMA, VISTA, VISTA_EMBLEMA } from './logotipo';
+import { cheio, emblema, TRANSFORMA, VISTA_EMBLEMA } from './logotipo';
+export { Emblema, Logo } from './Logo';
 import { brasao, TRANSFORMA_BRASAO, VISTA_BRASAO } from './brasao';
 import { gsap, semMovimento, useGSAP } from './kit';
-
-// Logótipo completo (emblema + letras), pintado com a cor do texto.
-export function Logo({ className = '', titulo = 'Casas do Beco, Ladoeiro' }: { className?: string; titulo?: string }) {
-  return (
-    <svg viewBox={VISTA} className={className} role="img" aria-label={titulo} fill="currentColor">
-      <g transform={TRANSFORMA}>{cheio.map((d, i) => <path key={i} d={d} />)}</g>
-    </svg>
-  );
-}
-
-// Só o emblema (o arco com a casa, os ciprestes e a melancia), sem as letras.
-export function Emblema({ className = '', titulo }: { className?: string; titulo?: string }) {
-  return (
-    <svg viewBox={VISTA_EMBLEMA} className={className} fill="currentColor" role={titulo ? 'img' : undefined} aria-label={titulo} aria-hidden={titulo ? undefined : true}>
-      <g transform={TRANSFORMA}>{cheio.slice(0, 20).map((d, i) => <path key={i} d={d} />)}</g>
-    </svg>
-  );
-}
 
 // O emblema a desenhar-se com o scroll, como na abertura: primeiro o traço, depois o cheio.
 export function EmblemaDesenhado({ className = '', inicio = 'top 80%', fim = 'bottom 35%' }: { className?: string; inicio?: string; fim?: string }) {

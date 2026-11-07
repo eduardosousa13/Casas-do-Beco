@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { CalendarDays, LayoutDashboard, BookOpen, Wallet, ArrowUpRight, LogOut } from 'lucide-react';
 import { authClient } from './auth-client';
-import { Logo } from '../site/Marca';
+import { Logo } from '../site/Logo';
 export type AdminPage='summary'|'calendar'|'reservations'|'finance'|'history'|'sessions';
 const navigation=[{id:'summary',href:'/admin',label:'Resumo',icon:LayoutDashboard},{id:'calendar',href:'/admin/calendar',label:'Calendário',icon:CalendarDays},{id:'reservations',href:'/admin/reservations',label:'Reservas',icon:BookOpen},{id:'finance',href:'/admin/finance',label:'Financeiro',icon:Wallet}];
 export default function Shell({userName,page,children}:{userName:string;page:AdminPage;children:ReactNode}) {

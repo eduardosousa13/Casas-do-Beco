@@ -4,7 +4,7 @@ import Owner from './Owner';
 import Activity from './Activity';
 import Access from './Access';
 import Recovery from './Recovery';
-import { Logo } from '../site/Marca';
+import { Logo } from '../site/Logo';
 import './admin.css';
 const data=JSON.parse(document.getElementById('admin-bootstrap')!.textContent!) as {page:string;userName:string;factorEnabled:boolean};
 function Admin(){
