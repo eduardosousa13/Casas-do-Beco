@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { ArrowUpRight, X } from 'lucide-react';
 import { Emblema, EmblemaDesenhado } from './Marca';
 import { Linha } from './desenhos';
-import { gsap, Imagem, irPara, ligarScrollSuave, paraOTopo, prenderScroll, ScrollTrigger, semMovimento } from './kit';
+import { GRANDE, gsap, Imagem, irPara, ligarScrollSuave, paraOTopo, prenderScroll, ScrollTrigger, semMovimento } from './kit';
 import { contactos, paginas, telefoneLink } from './dados';
 import InfoLegal, { type Separador } from './InfoLegal';
 
@@ -56,8 +56,10 @@ function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    // O cabeçalho fica sempre visível. Na página inicial só ganha fundo depois de o logótipo grande sair do ecrã.
-    const f = () => setDesceu(scrollY > (inicio ? innerHeight * 0.8 : 40));
+    // O cabeçalho fica sempre visível. Na página inicial só ganha fundo depois de o logótipo grande sair do ecrã;
+    // no computador a pintura encolhe logo para um quadro sobre o creme, por isso o fundo e a letra escura entram cedo.
+    const quadro = () => inicio && !semMovimento() && matchMedia(GRANDE).matches;
+    const f = () => setDesceu(scrollY > (inicio ? innerHeight * (quadro() ? 0.08 : 0.8) : 40));
     f();
     addEventListener('scroll', f, { passive: true });
     return () => removeEventListener('scroll', f);
