@@ -69,7 +69,7 @@ function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
   return (
     <>
       <header className={`fixed inset-x-0 top-0 z-50 transition-[transform,background-color,color,box-shadow] duration-500 ease-(--ease-sai) ${desceu ? 'bg-creme shadow-[0_1px_0_rgb(68_62_43/0.12)]' : 'bg-transparent'} ${cor}`}>
-        <div className="contentor grid h-[4.5rem] grid-cols-[1fr_auto_1fr] items-center">
+        <div className="contentor grid h-16 grid-cols-[1fr_auto_1fr] items-center">
           <button type="button" onClick={() => setMenu(true)} aria-haspopup="dialog" aria-expanded={menu}
             className="group flex items-center gap-3 justify-self-start py-3 text-[0.95rem] font-medium">
             <span className="flex w-7 flex-col gap-[6px]" aria-hidden>
@@ -80,7 +80,7 @@ function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
           </button>
           <Link to="/" aria-label="Casas do Beco, página inicial"
             className={`transition-[opacity,transform] duration-700 ease-(--ease-sai) ${inicio && !desceu ? 'pointer-events-none -translate-y-2 opacity-0' : ''}`}>
-            <Emblema className="h-11 w-auto" />
+            <Emblema className="h-10 w-auto" />
           </Link>
           <Link to="/reservas" className={`botao botao-pequeno justify-self-end ${claro ? 'botao-claro' : ''}`}>
             Reservar
@@ -118,11 +118,11 @@ function Menu({ aberto, fechar }: { aberto: boolean; fechar: () => void }) {
     <dialog ref={ref} aria-label="Menu" data-lenis-prevent onCancel={e => { e.preventDefault(); fechar(); }}
       className="m-0 h-dvh max-h-none w-full max-w-none bg-musgo p-0 text-creme backdrop:bg-transparent">
       <div className="contentor flex h-full flex-col">
-        <div className="grid h-[4.5rem] grid-cols-[1fr_auto_1fr] items-center">
+        <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center">
           <button type="button" onClick={fechar} className="flex items-center gap-3 justify-self-start py-3 text-[0.95rem] font-medium">
             <X size={22} strokeWidth={1.4} aria-hidden /> Fechar
           </button>
-          <Link to="/" onClick={fechar} aria-label="Página inicial"><Emblema className="h-11 w-auto text-creme" /></Link>
+          <Link to="/" onClick={fechar} aria-label="Página inicial"><Emblema className="h-10 w-auto text-creme" /></Link>
           <Link to="/reservas" onClick={fechar} className="botao botao-pequeno botao-claro botao-cheio justify-self-end">Reservar</Link>
         </div>
         <div className="grid flex-1 items-center gap-10 py-8 lg:grid-cols-[1.1fr_1fr]">

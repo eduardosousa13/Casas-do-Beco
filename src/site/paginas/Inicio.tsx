@@ -1,10 +1,10 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTopo } from '../Estrutura';
-import { BrasaoDesenhado, Logo } from '../Marca';
+import { BrasaoDesenhado, Logo, PinoCasa } from '../Marca';
 import { Capela, Linha, Estandarte, Melancia } from '../desenhos';
-import { Acende, aposAbertura, FotoPorFazer, GRANDE, gsap, Imagem, Ligacao, Linhas, Revela, semMovimento, useGSAP } from '../kit';
-import { contactos, fotos, pontos, telefoneLink } from '../dados';
+import { Acende, aposAbertura, GRANDE, gsap, Imagem, Ligacao, Linhas, Revela, semMovimento, useGSAP } from '../kit';
+import { fotos, pontos } from '../dados';
 
 export default function Inicio() {
   useTopo('escuro');
@@ -16,7 +16,6 @@ export default function Inicio() {
       <OMapa />
       <AsTradicoes />
       <Reservar />
-      <SobreNos />
     </>
   );
 }
@@ -142,8 +141,8 @@ function OMapa() {
     gsap.fromTo(el.querySelector('[data-rota]'), { drawSVG: '0%' }, { drawSVG: '100%', ease: 'none', scrollTrigger: st });
   }, { scope: ref });
 
-  // Percurso pelos pontos, da piscina à capela, a passar pela casa.
-  const rota = 'M1465 242 Q1390 232 1309 251 Q1220 290 1150 383 Q1070 340 974 356 Q790 350 601 391 L588 416 Q545 360 522 291 Q300 320 100 407 Q55 440 19 475';
+  // Percurso pelos pontos, da piscina à capela, a passar pela casa, pelo ribeiro e pelo chafariz.
+  const rota = 'M1465 242 Q1390 232 1309 251 Q1220 290 1150 383 Q1070 340 974 356 Q790 350 601 391 L588 446 Q530 480 495 546 Q440 450 498 347 Q505 320 522 291 Q300 320 100 407 Q55 440 19 475';
   return (
     <section ref={ref} className="relative bg-musgo text-creme">
       <Linha className="absolute inset-x-0 top-0" />
@@ -161,9 +160,9 @@ function OMapa() {
             <path data-rota d={rota} fill="none" stroke="var(--color-creme)" strokeWidth={4} strokeLinecap="round" opacity={0.9} />
           </svg>
           {pontos.map(p => (
-            <span key={p.id} data-pino className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: `${(p.x / 1774) * 100}%`, top: `${(p.y / 887) * 100}%` }} aria-hidden>
-              <span className={`block size-4 rounded-full border-[3px] border-creme shadow-[0_2px_8px_rgb(0_0_0/0.4)] lg:size-5 ${p.id === 'casa' ? 'bg-ocre' : 'bg-telha'}`} />
-              {p.id === 'casa' && <span className="absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap bg-noite/85 px-3 py-1 text-xs font-medium">Casas do Beco</span>}
+            <span key={p.id} data-pino className={`absolute -translate-x-1/2 ${p.id === 'casa' ? 'z-10 -translate-y-full' : '-translate-y-1/2'}`} style={{ left: `${(p.x / 1774) * 100}%`, top: `${(p.y / 887) * 100}%` }} aria-hidden>
+              {p.id === 'casa' ? <PinoCasa className="block h-9 w-auto drop-shadow-[0_3px_6px_rgb(0_0_0/0.4)] lg:h-12" />
+                : <span className="block size-4 rounded-full border-[3px] border-creme bg-telha shadow-[0_2px_8px_rgb(0_0_0/0.4)] lg:size-5" />}
             </span>
           ))}
         </Link>
@@ -232,27 +231,6 @@ function Reservar() {
             <p className="corrido text-creme/90">Escolha a casa e as datas. As reservas são feitas diretamente connosco, quarto a quarto.</p>
             <Ligacao para="/reservas" claro principal>Ver casas e datas</Ligacao>
           </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function SobreNos() {
-  return (
-    <section className="bg-creme pb-40 pt-24 lg:pb-52 lg:pt-36">
-      <div className="contentor grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:items-center lg:gap-24">
-        <FotoPorFazer nome="Os donos à porta de casa" className="aspect-[4/5] max-h-[72vh]" />
-        <div>
-          <Linhas as="h2" className="titulo t-grande">Uma família <em>da terra.</em></Linhas>
-          <p className="corrido mt-8 text-[1.15rem] leading-relaxed text-terra/90">
-            As Casas do Beco são de uma família do Ladoeiro que decidiu abrir a porta a quem vem de fora. {contactos.donos} recebem cada hóspede pessoalmente e sabem dizer onde se come bem, a que horas abre a loja e quando é a próxima festa.
-          </p>
-          <dl className="mt-10 grid gap-5 border-t border-terra/15 pt-8 sm:grid-cols-2">
-            <div><dt className="text-sm text-terra/80">E-mail</dt><dd className="mt-1 break-all"><a href={`mailto:${contactos.email}`} className="underline">{contactos.email}</a></dd></div>
-            <div><dt className="text-sm text-terra/80">Telefone</dt><dd className="mt-1"><a href={telefoneLink} className="underline">{contactos.telefone}</a></dd></div>
-          </dl>
-          <Ligacao para="/sobre-nos" className="mt-12">Sobre nós e contactos</Ligacao>
         </div>
       </div>
     </section>

@@ -25,6 +25,8 @@ export const fotos = {
   fonte: f('fonte-grande', 'Fonte Grande, de granito, com coroa, brasão real e tanque de água, numa praça de calçada', 1536, 1024),
   palco: f('palco', 'Palco Multiusos coberto, ao lado do Centro de Recreio, num recinto amplo ao fim da tarde', 1536, 1024),
   piscina: f('piscina', 'Piscina Municipal do Ladoeiro ao ar livre, com toldos azuis e espreguiçadeiras', 1536, 1024),
+  ribeiro: f('ribeiro-das-lajes', 'Ribeiro das Lajes: lavadouro de pedra com telheiro vermelho sobre a água corrente, entre muros e verdura', 1736, 904),
+  chafariz: f('chafariz-novo', 'Chafariz Novo do Ladoeiro, muro branco com arco cor de laranja e grade verde, numa rua de calçada', 1536, 1024),
   placa: f('interior-placa', 'Placas de madeira na parede: o que faz a nossa casa especial é quem a habita', 1536, 2048),
 };
 
@@ -59,7 +61,7 @@ export const contactos = {
 };
 
 // Pontos do mapa, em píxeis da imagem aérea (1774 × 887), pela ordem e nas posições que o Eduardo marcou
-// (imagem de referência "satelite-mapa - cópia.png", a 07/11/2026).
+// (imagem de referência "satelite-mapa - cópia.png", a 07/11/2026; pontos 10 e 11 a 08/11/2026).
 export type Ponto = { id: string; x: number; y: number; nome: string; tipo: string; texto: string; foto?: Foto };
 export const pontos: Ponto[] = [
   { id: 'casa', x: 1150, y: 383, nome: 'Casas do Beco', tipo: 'A nossa casa', foto: fotos.fachada,
@@ -80,6 +82,10 @@ export const pontos: Ponto[] = [
     texto: 'O palco coberto da aldeia, junto ao Centro de Recreio, num recinto largo onde se juntam as festas.' },
   { id: 'festival', x: 1309, y: 251, nome: 'Festival da Melancia', tipo: 'No verão', foto: fotos.festival,
     texto: 'O recinto onde a aldeia celebra a melancia do Ladoeiro, com bancas, música e muita fruta.' },
+  { id: 'ribeiro', x: 495, y: 546, nome: 'Ribeiro das Lajes', tipo: 'Património', foto: fotos.ribeiro,
+    texto: 'Era aqui que noutros tempos se lavava a roupa. Ficaram as pedras, o tanque e a água corrente, num recanto fresco à sombra das árvores.' },
+  { id: 'chafariz', x: 498, y: 347, nome: 'Chafariz Novo', tipo: 'Património', foto: fotos.chafariz,
+    texto: 'Chafariz caiado com o arco pintado de laranja, junto ao recinto do Palco Multiusos, à beira dos olivais.' },
 ];
 
 export const telefoneLink = `tel:${contactos.telefone.replace(/\s/g, '')}`;
