@@ -20,10 +20,6 @@ function Pino({ altura, cor }: { altura: string; cor: string }) {
   );
 }
 
-const Creditos = ({ className }: { className: string }) => (
-  <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className={`absolute text-[0.65rem] hover:underline ${className}`}>© OpenStreetMap</a>
-);
-
 // Página inicial: faixa larga e baixa com as ruas, de ponta a ponta.
 export function FaixaComoChegar() {
   const ref = useRef<HTMLElement>(null);
@@ -48,7 +44,6 @@ export function FaixaComoChegar() {
           Abrir com o Google Maps <ArrowUpRight size={16} strokeWidth={1.5} aria-hidden />
         </a>
       </div>
-      <Creditos className="right-4 top-3 text-creme/55 sm:right-8" />
     </section>
   );
 }
@@ -63,7 +58,6 @@ export function PostalComoChegar() {
           <div className="relative size-60 overflow-hidden sm:size-72 lg:size-[26rem]">
             <div className="absolute inset-0 bg-terra/45" style={ruas('ruas-postal.svg')} aria-hidden />
             <Pino altura="h-14" cor="text-musgo" />
-            <Creditos className="bottom-1.5 right-2 text-terra/60" />
           </div>
         </div>
         <div className="mt-12 flex flex-col items-center lg:mt-0 lg:max-w-md lg:items-start">
