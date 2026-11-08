@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { ArrowUpRight, X } from 'lucide-react';
 import { Emblema, EmblemaDesenhado } from './Marca';
 import { Linha } from './desenhos';
-import { gsap, Imagem, irPara, ligarScrollSuave, paraOTopo, prenderScroll, ScrollTrigger, semMovimento } from './kit';
+import { GRANDE, gsap, Imagem, irPara, ligarScrollSuave, paraOTopo, prenderScroll, ScrollTrigger, semMovimento } from './kit';
 import { contactos, paginas, telefoneLink } from './dados';
 import InfoLegal, { type Separador } from './InfoLegal';
 
@@ -52,19 +52,14 @@ export default function Estrutura() {
 
 function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
   const [desceu, setDesceu] = useState(false);
-  const [escondido, setEscondido] = useState(false);
   const [menu, setMenu] = useState(false);
   const { pathname } = useLocation();
 
   useEffect(() => {
-    let ultimo = scrollY;
-    const f = () => {
-      const y = scrollY;
-      // Na página inicial o cabeçalho só ganha fundo depois de o logótipo grande sair do ecrã.
-      setDesceu(y > (inicio ? innerHeight * 0.85 : 40));
-      setEscondido(y > ultimo && y > innerHeight * 1.1);
-      ultimo = y;
-    };
+    // O cabeçalho fica sempre visível. Na página inicial só ganha fundo depois de o logótipo grande sair do ecrã;
+    // no computador a pintura encolhe logo para um quadro sobre o creme, por isso o fundo e a letra escura entram cedo.
+    const quadro = () => inicio && !semMovimento() && matchMedia(GRANDE).matches;
+    const f = () => setDesceu(scrollY > (inicio ? innerHeight * (quadro() ? 0.08 : 0.8) : 40));
     f();
     addEventListener('scroll', f, { passive: true });
     return () => removeEventListener('scroll', f);
@@ -75,8 +70,8 @@ function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
   const cor = claro ? 'text-creme' : 'text-terra';
   return (
     <>
-      <header className={`fixed inset-x-0 top-0 z-50 transition-[transform,background-color,color,box-shadow] duration-500 ease-(--ease-sai) ${escondido && !menu ? '-translate-y-full' : ''} ${desceu ? 'bg-creme shadow-[0_1px_0_rgb(68_62_43/0.12)]' : 'bg-transparent'} ${cor}`}>
-        <div className="contentor grid h-[4.5rem] grid-cols-[1fr_auto_1fr] items-center">
+      <header className={`fixed inset-x-0 top-0 z-50 transition-[transform,background-color,color,box-shadow] duration-500 ease-(--ease-sai) ${desceu ? 'bg-creme shadow-[0_1px_0_rgb(68_62_43/0.12)]' : 'bg-transparent'} ${cor}`}>
+        <div className="contentor grid h-16 grid-cols-[1fr_auto_1fr] items-center">
           <button type="button" onClick={() => setMenu(true)} aria-haspopup="dialog" aria-expanded={menu}
             className="group flex items-center gap-3 justify-self-start py-3 text-[0.95rem] font-medium">
             <span className="flex w-7 flex-col gap-[6px]" aria-hidden>
@@ -85,9 +80,10 @@ function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
             </span>
             Menu
           </button>
-          <Link to="/" aria-label="Casas do Beco, página inicial"
-            className={`transition-[opacity,transform] duration-700 ease-(--ease-sai) ${inicio && !desceu ? 'pointer-events-none -translate-y-2 opacity-0' : ''}`}>
-            <Emblema className="h-11 w-auto" />
+          {/* Na página inicial com movimento, quem mostra o emblema é a saída da hero (Inicio.tsx). */}
+          <Link to="/" aria-label="Casas do Beco, página inicial" data-emblema-topo
+            className={semMovimento() ? `transition-[opacity,transform] duration-700 ease-(--ease-sai) ${inicio && !desceu ? 'pointer-events-none -translate-y-2 opacity-0' : ''}` : ''}>
+            <Emblema className="h-10 w-auto" />
           </Link>
           <Link to="/reservas" className={`botao botao-pequeno justify-self-end ${claro ? 'botao-claro' : ''}`}>
             Reservar
@@ -125,11 +121,11 @@ function Menu({ aberto, fechar }: { aberto: boolean; fechar: () => void }) {
     <dialog ref={ref} aria-label="Menu" data-lenis-prevent onCancel={e => { e.preventDefault(); fechar(); }}
       className="m-0 h-dvh max-h-none w-full max-w-none bg-musgo p-0 text-creme backdrop:bg-transparent">
       <div className="contentor flex h-full flex-col">
-        <div className="grid h-[4.5rem] grid-cols-[1fr_auto_1fr] items-center">
+        <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center">
           <button type="button" onClick={fechar} className="flex items-center gap-3 justify-self-start py-3 text-[0.95rem] font-medium">
             <X size={22} strokeWidth={1.4} aria-hidden /> Fechar
           </button>
-          <Link to="/" onClick={fechar} aria-label="Página inicial"><Emblema className="h-11 w-auto text-creme" /></Link>
+          <Link to="/" onClick={fechar} aria-label="Página inicial"><Emblema className="h-10 w-auto text-creme" /></Link>
           <Link to="/reservas" onClick={fechar} className="botao botao-pequeno botao-claro botao-cheio justify-self-end">Reservar</Link>
         </div>
         <div className="grid flex-1 items-center gap-10 py-8 lg:grid-cols-[1.1fr_1fr]">

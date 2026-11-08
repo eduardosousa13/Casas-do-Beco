@@ -20,6 +20,12 @@
   --ease-sai: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Traço que desce dentro de uma linha fina, a convidar a descer a página. */
+@keyframes descer {
+  0% { transform: translateY(-100%); }
+  60%, 100% { transform: translateY(200%); }
+}
+
 @layer base {
   html { background: var(--color-noite); -webkit-text-size-adjust: 100%; scroll-padding-top: 6rem; }
   body {

@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Minus, Plus, X } from 'lucide-react';
+import { ArrowDown, Minus, Plus, X } from 'lucide-react';
 import { useTopo } from '../Estrutura';
+import { PinoCasa } from '../Logo';
+import { PostalComoChegar } from '../ComoChegar';
 import { FotoPorFazer, gsap, Imagem, irPara, Ligacao, Linhas, Revela, semMovimento } from '../kit';
 import { fotos, pontos, type Ponto } from '../dados';
 
 const L = 1774, A = 887;
 // Zoom em múltiplos do mínimo (a aldeia inteira a cobrir o ecrã): um ponto aproxima pouco e o máximo fica
-// perto do que a fotografia aguenta sem desfocar.
-const ZOOM_PONTO = 1.45, ZOOM_MAX = 2.2;
+// abaixo do ponto em que a fotografia começa a desfocar.
+const ZOOM_PONTO = 1.35, ZOOM_MAX = 1.6;
 
 type Camara = { ir: (p: Ponto) => void; afastar: () => void };
 
@@ -29,9 +31,13 @@ export default function Mapa() {
           </div>
         </div>
         <Painel ponto={ativo} fechar={fechar} />
+        <VerTudo escondido={!!ativo} />
+        <Aviso />
       </section>
 
-      <section className="bg-creme pb-40 pt-24 lg:pb-52 lg:pt-32">
+      <PostalComoChegar />
+
+      <section id="lugares" className="scroll-mt-16 bg-creme pb-40 pt-24 lg:pb-52 lg:pt-32">
         <div className="contentor">
           <Linhas as="h2" className="titulo t-grande max-w-[16ch]">O que há <em>à volta da casa.</em></Linhas>
           <ul className="mt-16 grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
@@ -63,14 +69,13 @@ export default function Mapa() {
 function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: Ponto) => void; ligar: (c: Camara) => void }) {
   const vista = useRef<HTMLDivElement>(null);
   const mundo = useRef<HTMLDivElement>(null);
-  const [aviso, setAviso] = useState(true);
-  const [dica, setDica] = useState(false);
   const api = useRef<{ zoom: (k: number) => void }>({ zoom: () => {} });
 
   useEffect(() => {
     const v = vista.current!, m = mundo.current!;
-    // folga: espaço em píxeis que a câmara pode descer além do fundo da imagem (fica escondido por baixo do cartão no telemóvel).
-    const cam = { cx: L / 2, cy: A / 2, s: 1, folga: 0 };
+    // folga / folgaX: espaço em píxeis que a câmara pode passar além do fundo (telemóvel) ou da direita
+    // (computador) da imagem; fica escondido por baixo do cartão.
+    const cam = { cx: L / 2, cy: A / 2, s: 1, folga: 0, folgaX: 0 };
     let afastado = true;
     let viagem: gsap.core.Tween | null = null;
     const W = () => v.clientWidth, H = () => v.clientHeight;
@@ -78,7 +83,7 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
     const limitar = () => {
       cam.s = Math.min(minS() * ZOOM_MAX, Math.max(minS(), cam.s));
       const mx = W() / (2 * cam.s), my = H() / (2 * cam.s);
-      cam.cx = Math.min(L - mx, Math.max(mx, cam.cx));
+      cam.cx = Math.min(L - mx + cam.folgaX / cam.s, Math.max(mx, cam.cx));
       cam.cy = Math.min(A - my + cam.folga / cam.s, Math.max(my, cam.cy));
     };
     const desenhar = () => {
@@ -91,26 +96,31 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
     // desenhá-la à escala certa, com o máximo de nitidez.
     const camada = (sim: boolean) => { m.style.willChange = sim ? 'transform' : 'auto'; };
     const parar = () => { viagem?.kill(); viagem = null; };
-    const voar = (cx: number, cy: number, s: number, duracao: number, ease = 'power3.inOut', folga = cam.folga) => {
+    const voar = (cx: number, cy: number, s: number, duracao: number, ease = 'power3.inOut', folga = cam.folga, folgaX = cam.folgaX) => {
       parar();
-      if (semMovimento()) { Object.assign(cam, { cx, cy, s, folga }); desenhar(); return; }
+      if (semMovimento()) { Object.assign(cam, { cx, cy, s, folga, folgaX }); desenhar(); return; }
       camada(true);
-      viagem = gsap.to(cam, { cx, cy, s, folga, duration: duracao, ease, onUpdate: desenhar, onComplete: () => { viagem = null; camada(false); } });
+      viagem = gsap.to(cam, { cx, cy, s, folga, folgaX, duration: duracao, ease, onUpdate: desenhar, onComplete: () => { viagem = null; camada(false); } });
     };
     // No computador o ponto fica à esquerda do painel. No telemóvel fica a meio do espaço livre entre o
     // cabeçalho e o cartão, medido depois de o cartão mostrar o novo ponto.
     const ir = (p: Ponto) => {
       afastado = false;
       const s = Math.max(cam.s, minS() * ZOOM_PONTO);
-      if (W() >= 768) { voar(p.x + Math.min(200, W() * 0.15) / s, p.y, s, 1.6, 'power3.inOut', 0); return; }
+      if (W() >= 768) {
+        const cartao = v.closest('section')?.querySelector('aside');
+        const tapado = (cartao?.offsetWidth ?? 352) + 48;
+        voar(p.x + Math.min(200, W() * 0.15) / s, p.y, s, 1.6, 'power3.inOut', 0, tapado);
+        return;
+      }
       requestAnimationFrame(() => {
         const cartao = v.closest('section')?.querySelector('aside');
         const tapado = (cartao?.getBoundingClientRect().height ?? H() * 0.5) + 16;
-        const alvoY = (72 + H() - tapado) / 2;
-        voar(p.x, p.y + (H() / 2 - alvoY) / s, s, 1.6, 'power3.inOut', tapado);
+        const alvoY = (64 + H() - tapado) / 2;
+        voar(p.x, p.y + (H() / 2 - alvoY) / s, s, 1.6, 'power3.inOut', tapado, 0);
       });
     };
-    const afastar = () => { afastado = true; voar(cam.cx, cam.cy, minS(), 1.4, 'power3.inOut', 0); };
+    const afastar = () => { afastado = true; voar(cam.cx, cam.cy, minS(), 1.4, 'power3.inOut', 0, 0); };
     ligar({ ir, afastar });
     api.current.zoom = k => {
       afastado = false;
@@ -125,13 +135,12 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
       afastado = false; desenhar();
     };
 
-    const esconder = () => setAviso(false);
     const toques = new Map<number, [number, number]>();
     let dist0 = 0, s0 = 1;
     const baixo = (e: PointerEvent) => {
       if ((e.target as HTMLElement).closest('button')) return;
       v.setPointerCapture(e.pointerId); toques.set(e.pointerId, [e.clientX, e.clientY]);
-      parar(); camada(true); v.dataset.agarra = ''; esconder();
+      parar(); camada(true); v.dataset.agarra = '';
       if (toques.size === 2) { const [a, b] = [...toques.values()]; dist0 = Math.hypot(a[0] - b[0], a[1] - b[1]); s0 = cam.s; }
     };
     const mexe = (e: PointerEvent) => {
@@ -147,10 +156,10 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
     };
     const larga = (e: PointerEvent) => { toques.delete(e.pointerId); if (!toques.size) { delete v.dataset.agarra; camada(false); } };
     // A roda sozinha continua a descer a página; com Ctrl (ou o gesto de beliscar do trackpad) aproxima.
-    let tempoDica = 0, tempoRoda = 0;
+    let tempoRoda = 0;
     const roda = (e: WheelEvent) => {
-      if (!e.ctrlKey && !e.metaKey) { setDica(true); clearTimeout(tempoDica); tempoDica = window.setTimeout(() => setDica(false), 1600); return; }
-      e.preventDefault(); e.stopPropagation(); esconder(); parar(); camada(true);
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault(); e.stopPropagation(); parar(); camada(true);
       clearTimeout(tempoRoda); tempoRoda = window.setTimeout(() => camada(false), 200);
       const r = v.getBoundingClientRect();
       zoomEm(e.clientX - r.left, e.clientY - r.top, cam.s * Math.exp(-e.deltaY * 0.01));
@@ -178,7 +187,7 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
     desenhar();
     voar(L / 2, A / 2, minS(), 2.4, 'expo.out');
     return () => {
-      parar(); clearTimeout(tempoDica); clearTimeout(tempoRoda); observa.disconnect();
+      parar(); clearTimeout(tempoRoda); observa.disconnect();
       v.removeEventListener('pointerdown', baixo); v.removeEventListener('pointermove', mexe);
       v.removeEventListener('pointerup', larga); v.removeEventListener('pointercancel', larga);
       v.removeEventListener('wheel', roda);
@@ -195,26 +204,58 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
             <button key={p.id} type="button" onClick={() => escolher(p)} aria-pressed={ativo?.id === p.id}
               className="group absolute origin-bottom [transform:translate(-50%,-100%)_scale(var(--inv,1))]"
               style={{ left: p.x, top: p.y }}>
-              <span className={`mb-2 block whitespace-nowrap bg-noite/85 px-3 py-1.5 text-[0.8rem] font-medium text-creme transition-[opacity,transform] duration-300 ease-(--ease-sai) group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 ${ativo?.id === p.id || p.id === 'casa' ? 'opacity-100' : 'translate-y-1 opacity-0'}`}>{p.nome}</span>
-              <span className={`relative mx-auto block size-5 rounded-full border-4 border-creme shadow-[0_2px_10px_rgb(0_0_0/0.45)] ${p.id === 'casa' ? 'bg-ocre' : 'bg-telha'}`}>
-                <span className="absolute inset-[-4px] animate-ping rounded-full border-2 border-creme/60 motion-reduce:hidden" />
-              </span>
+              {/* O nome fica por cima do ponto; perto das margens da fotografia encosta-se ao lado de dentro para não sair do ecrã. */}
+              <span className={`absolute bottom-full mb-2 block whitespace-nowrap bg-noite/85 ${p.x < 260 ? 'left-0' : p.x > L - 260 ? 'right-0' : 'left-1/2 -translate-x-1/2'} px-3 py-1.5 text-[0.8rem] font-medium text-creme transition-[opacity,transform] duration-300 ease-(--ease-sai) group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 ${ativo?.id === p.id ? 'opacity-100' : 'translate-y-1 opacity-0'}`}>{p.nome}</span>
+              {p.id === 'casa' ? (
+                <PinoCasa className="mx-auto block h-12 w-auto drop-shadow-[0_4px_8px_rgb(0_0_0/0.45)] transition-transform duration-300 ease-(--ease-sai) group-hover:-translate-y-1" />
+              ) : (
+                <span className="relative mx-auto block size-5 rounded-full border-4 border-creme bg-telha shadow-[0_2px_10px_rgb(0_0_0/0.45)]">
+                  <span className="absolute inset-[-4px] animate-ping rounded-full border-2 border-creme/60 motion-reduce:hidden" />
+                </span>
+              )}
             </button>
           ))}
         </div>
       </div>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-noite/70 to-transparent" />
-      <p className={`pointer-events-none absolute bottom-6 left-4 right-24 text-sm text-creme/90 transition-opacity duration-700 sm:left-8 ${aviso ? 'opacity-100' : 'opacity-0'}`}>
-        Arraste para explorar e toque nos pontos. Para aproximar, use os botões ou dois dedos.
-      </p>
-      <p role="status" className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-noite/85 px-5 py-3 text-sm transition-opacity duration-300 ${dica ? 'opacity-100' : 'opacity-0'}`}>
-        Use Ctrl + roda do rato para aproximar o mapa
-      </p>
       <div className="absolute bottom-6 right-4 flex flex-col gap-2 sm:right-8">
         <button type="button" onClick={() => zoom(1.35)} aria-label="Aproximar" className="grid size-11 place-items-center border border-musgo/20 bg-creme text-musgo hover:bg-linho"><Plus size={20} aria-hidden /></button>
         <button type="button" onClick={() => zoom(1 / 1.35)} aria-label="Afastar" className="grid size-11 place-items-center border border-musgo/20 bg-creme text-musgo hover:bg-linho"><Minus size={20} aria-hidden /></button>
       </div>
     </div>
+  );
+}
+
+// Aviso único, igual em todos os aparelhos: aparece ao abrir a página, com o mapa um pouco desfocado por
+// trás, e sai ao fim de uns segundos ou ao primeiro toque.
+function Aviso() {
+  const [visivel, setVisivel] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setVisivel(false), 2600);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div onPointerDown={() => setVisivel(false)} aria-hidden={!visivel}
+      className={`absolute inset-0 z-20 grid place-items-center bg-noite/25 px-6 backdrop-blur-[3px] transition-[opacity,backdrop-filter] duration-700 ease-(--ease-sai) ${visivel ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
+      <p role="status" className={`max-w-[22rem] border border-creme/30 bg-noite/80 px-7 py-5 text-center text-creme transition-transform duration-700 ease-(--ease-sai) ${visivel ? 'translate-y-0' : 'translate-y-2'}`}>
+        <span className="titulo block text-[1.5rem] leading-tight">Explore <em>a aldeia.</em></span>
+        <span className="mt-2 block text-[0.95rem] text-creme/85">Arraste para mover o mapa e clique nos pontos.</span>
+      </p>
+    </div>
+  );
+}
+
+// Sinal no fundo do mapa: leva à lista com todos os lugares, mais abaixo.
+function VerTudo({ escondido }: { escondido: boolean }) {
+  return (
+    <button type="button" onClick={() => irPara(document.getElementById('lugares') ?? 0, true)}
+      className={`group absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2 text-creme transition-opacity duration-500 ${escondido ? 'pointer-events-none opacity-0' : 'opacity-100'}`}>
+      <span className="text-[0.72rem] font-medium uppercase tracking-[0.22em]">Ver tudo</span>
+      <span className="relative block h-9 w-px overflow-hidden bg-creme/30" aria-hidden>
+        <span className="absolute inset-x-0 top-0 h-1/2 animate-[descer_2.2s_ease-in-out_infinite] bg-creme motion-reduce:animate-none" />
+      </span>
+      <ArrowDown size={14} strokeWidth={1.5} aria-hidden className="-mt-2 transition-transform duration-300 group-hover:translate-y-0.5" />
+    </button>
   );
 }
 

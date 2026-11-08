@@ -18,3 +18,17 @@ export function Emblema({ className = '', titulo }: { className?: string; titulo
     </svg>
   );
 }
+
+// Marcador da casa nos mapas: uma gota verde com o emblema num círculo claro. A ponta fica no fundo do
+// desenho, por isso quem o usa deve ancorá-lo pela base.
+export function PinoCasa({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 40 52" className={className} aria-hidden="true">
+      <path d="M20 51C14 42 3 31 3 19a17 17 0 0 1 34 0c0 12-11 23-17 32Z" fill="var(--color-musgo)" stroke="var(--color-creme)" strokeWidth="1.5" />
+      <circle cx="20" cy="19" r="12.5" fill="var(--color-creme)" />
+      <svg x="13.2" y="10.4" width="13.6" height="17.2" viewBox={VISTA_EMBLEMA} fill="#1d1a16">
+        <g transform={TRANSFORMA}>{cheio.slice(0, 20).map((d, i) => <path key={i} d={d} />)}</g>
+      </svg>
+    </svg>
+  );
+}

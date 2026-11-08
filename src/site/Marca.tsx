@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { cheio, emblema, TRANSFORMA, VISTA_EMBLEMA } from './logotipo';
-export { Emblema, Logo } from './Logo';
+export { Emblema, Logo, PinoCasa } from './Logo';
 import { brasao, TRANSFORMA_BRASAO, VISTA_BRASAO } from './brasao';
 import { gsap, semMovimento, useGSAP } from './kit';
 
