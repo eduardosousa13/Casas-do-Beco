@@ -31,7 +31,11 @@
 .pms-admin .brand svg{width:132px;height:auto;display:block}
 .pms-admin .brand small{display:block;font-size:10px;letter-spacing:.22em;text-transform:uppercase;margin-top:16px;color:var(--ocre)}
 .pms-admin .admin-shell{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100vh}
-.pms-admin aside{position:sticky;top:0;height:100vh;padding:34px 26px;background:var(--musgo);color:var(--creme);display:flex;flex-direction:column;gap:34px}
+.pms-admin aside{position:sticky;top:0;height:100vh;height:100dvh;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(247,234,203,.3) transparent;padding:34px 26px;background:var(--musgo);color:var(--creme);display:flex;flex-direction:column;gap:34px}
+/* A barra lateral pode ser mais alta do que o ecrã (portátil pequeno, zoom do navegador): rola sozinha
+   para o "Terminar sessão" nunca ficar fora de alcance. */
+.pms-admin .admin-menu{display:flex;flex-direction:column;gap:34px;flex:1}
+.pms-admin .admin-menu-toggle,.pms-admin .brand-compact{display:none}
 .pms-admin aside .eyebrow{color:var(--ocre)}
 .pms-admin nav a{display:flex;align-items:center;gap:12px;padding:14px 0;text-decoration:none;border-bottom:1px solid rgba(247,234,203,.14);font-size:15px;color:rgba(247,234,203,.85);transition:color .3s}
 .pms-admin nav a svg:last-child{margin-left:auto;opacity:0;transition:opacity .3s,transform .4s var(--ease)}
@@ -41,7 +45,8 @@
 .pms-admin .account{margin-top:auto;display:grid;gap:11px}
 .pms-admin .account p{margin:0 0 6px;font-family:var(--serif);font-size:24px;color:var(--creme)}
 .pms-admin .account a{font-size:13px;color:rgba(247,234,203,.85);text-decoration:none}
-.pms-admin .account a:hover{color:var(--creme);text-decoration:underline}
+.pms-admin .account a:hover,.pms-admin .account a[aria-current=page]{color:var(--creme);text-decoration:underline}
+.pms-admin .sign-out-error{margin:0;font-size:12px;color:#f2d6c4}
 .pms-admin aside button.secondary{white-space:nowrap;padding:12px 14px;letter-spacing:.14em;color:var(--creme);border-color:rgba(247,234,203,.6)}
 .pms-admin aside button.secondary:hover{background:var(--creme);color:var(--musgo);border-color:var(--creme)}
 .pms-admin .signature{color:rgba(247,234,203,.7);letter-spacing:.14em;font-size:11px}
@@ -94,7 +99,8 @@
 .pms-admin th,.pms-admin td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:15px;overflow-wrap:anywhere}
 .pms-admin th{font-weight:500;color:var(--terra-suave)}
 .pms-admin .calendar-table{min-width:1450px;table-layout:fixed;background:var(--linho)}
-.pms-admin .calendar-table caption{text-align:left;padding:20px;font:500 28px var(--serif);text-transform:capitalize;color:var(--terra)}
+.pms-admin .calendar-table caption{text-align:left;padding:20px;font:500 28px var(--serif);color:var(--terra)}
+.pms-admin .calendar-table caption::first-letter{text-transform:uppercase}
 .pms-admin .calendar-table th:first-child{width:200px;position:sticky;left:0;background:var(--creme);z-index:1}
 .pms-admin .calendar-table tbody th small{display:block;color:var(--terra-suave)}
 .pms-admin .calendar-table th,.pms-admin .calendar-table td{padding:7px 2px;border-right:1px solid var(--line)}
@@ -135,12 +141,31 @@
 .pms-admin .access-card{width:100%;max-width:500px;margin:30px auto;padding:36px;background:var(--linho);border:1px solid var(--line);box-shadow:0 40px 80px -30px rgba(0,0,0,.55)}
 .pms-admin .access-card h1{font-size:42px}
 .pms-admin .access-card button{margin:8px 8px 0 0}
+.pms-admin .access-card a:not(.button){display:inline-block;padding:10px 0}
 .pms-admin .secret,.pms-admin pre{display:block;overflow-wrap:anywhere;white-space:pre-wrap;padding:16px;background:var(--creme);border:1px solid var(--line)}
 .pms-admin .loading{color:var(--musgo);padding:30px 0}
 .pms-admin .workspace-content{animation:workspace-enter .5s var(--ease)}
 @keyframes workspace-enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media(max-width:1100px){.pms-admin .stats{grid-template-columns:repeat(2,minmax(0,1fr))}.pms-admin .two-columns{grid-template-columns:1fr}.pms-admin .booking-row{flex-wrap:wrap;gap:16px}.pms-admin .hero-date{display:none}}
-@media(max-width:760px){.pms-admin .admin-shell{display:block}.pms-admin aside{position:static;height:auto;display:grid;grid-template-columns:90px minmax(0,1fr);padding:20px;gap:16px}.pms-admin .brand svg{width:84px}.pms-admin aside .brand small,.pms-admin .signature{display:none}.pms-admin nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}.pms-admin nav a{padding:8px 0;font-size:14px}.pms-admin nav a[aria-current=page]{font-size:17px}.pms-admin nav a svg:last-child{display:none}.pms-admin .account{grid-column:1/-1;display:flex;align-items:center;flex-wrap:wrap;gap:12px;border-top:1px solid rgba(247,234,203,.14);padding-top:16px}.pms-admin .account>.eyebrow,.pms-admin .account p{display:none}.pms-admin .account button{padding:9px 12px}.pms-admin .page-hero,.pms-admin .page-hero.landscape{padding:30px 22px;min-height:220px}.pms-admin .workspace-content{padding:24px 16px}.pms-admin .panel,.pms-admin .house-card{padding:20px}.pms-admin .stat{padding:18px 12px}.pms-admin .stat strong{font-size:32px}.pms-admin .toolbar>label,.pms-admin .toolbar form{min-width:0;width:100%}.pms-admin .month-controls{gap:8px;width:100%}.pms-admin .month-controls label{flex:1}.pms-admin .month-controls input{padding:10px}.pms-admin .booking-meta{flex-wrap:wrap;text-align:left;gap:12px}.pms-admin .form-grid{grid-template-columns:1fr}.pms-admin .compact{grid-template-columns:1fr}.pms-admin dialog{padding:22px}.pms-admin .workspace-footer{flex-direction:column}.pms-admin .access-card{padding:24px}.pms-admin .account a[href='/admin/history']{display:none}}
+@media(max-width:760px){.pms-admin .page-hero,.pms-admin .page-hero.landscape{padding:30px 22px;min-height:220px}.pms-admin .workspace-content{padding:24px 16px}.pms-admin .panel,.pms-admin .house-card{padding:20px}.pms-admin .stat{padding:18px 12px}.pms-admin .stat strong{font-size:32px}.pms-admin .toolbar>label,.pms-admin .toolbar form{min-width:0;width:100%}.pms-admin .month-controls{gap:8px;width:100%}.pms-admin .month-controls label{flex:1}.pms-admin .month-controls input{padding:10px}.pms-admin .booking-meta{flex-wrap:wrap;text-align:left;gap:12px}.pms-admin .form-grid{grid-template-columns:1fr}.pms-admin .compact{grid-template-columns:1fr}.pms-admin dialog{padding:22px}.pms-admin .workspace-footer{flex-direction:column}.pms-admin .access-card{padding:24px}}
+/* Portátil com pouca altura: a barra lateral aperta-se para caber inteira sem rolar. */
+@media(min-width:901px) and (max-height:820px){.pms-admin aside{padding:22px 24px;gap:20px}.pms-admin aside .brand svg{width:96px}.pms-admin aside .brand small{margin-top:10px}.pms-admin .admin-menu{gap:20px}.pms-admin nav a{padding:10px 0}.pms-admin .account{gap:8px}.pms-admin .account p{font-size:21px;margin-bottom:2px}.pms-admin .signature{display:none}}
+/* Tablet na vertical e telemóvel: barra superior fixa e menu completo (com a conta e a saída) num painel. */
+@media(max-width:900px){.pms-admin{--bar:60px}.pms-admin .admin-shell{display:block}
+ .pms-admin aside{z-index:40;height:var(--bar);overflow:visible;flex-direction:row;align-items:center;justify-content:space-between;gap:12px;padding:0 max(16px,env(safe-area-inset-right)) 0 max(16px,env(safe-area-inset-left))}
+ .pms-admin aside .brand>svg,.pms-admin aside .brand small{display:none}
+ .pms-admin .brand-compact{display:flex;align-items:center;gap:10px;font:500 22px/1 var(--serif);white-space:nowrap}
+ .pms-admin aside .brand .brand-compact svg{width:32px;height:auto}
+ .pms-admin .admin-menu-toggle{display:inline-flex;gap:8px;min-height:44px;padding:10px 14px;background:transparent;color:var(--creme);border-color:rgba(247,234,203,.6)}
+ .pms-admin .admin-menu-toggle:hover{background:var(--creme);color:var(--musgo)}
+ .pms-admin .admin-menu{position:fixed;top:var(--bar);left:0;right:0;bottom:0;z-index:39;gap:28px;overflow-y:auto;overscroll-behavior:contain;background:var(--musgo);border-top:1px solid rgba(247,234,203,.14);padding:8px max(20px,env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));opacity:0;visibility:hidden;transform:translateY(-8px);transition:opacity .3s var(--ease),transform .4s var(--ease),visibility 0s .4s}
+ .pms-admin .admin-menu[data-open=true]{opacity:1;visibility:visible;transform:none;transition:opacity .3s var(--ease),transform .4s var(--ease)}
+ .pms-admin nav a{padding:16px 0;font-size:17px}.pms-admin nav a[aria-current=page]{font-size:22px}
+ .pms-admin .account{margin-top:0;gap:0}.pms-admin .account p{margin:6px 0 8px}
+ .pms-admin .account a{padding:13px 0;font-size:15px;border-bottom:1px solid rgba(247,234,203,.1)}
+ .pms-admin aside .account button{margin-top:20px;padding:16px}
+ .pms-admin .sign-out-error{margin-top:14px}}
+html.admin-menu-open{overflow:hidden}
 @media(prefers-reduced-motion:reduce){.pms-admin *{animation:none!important;transition:none!important}}
 .day-agenda{display:none}
 .day-agenda label{max-width:220px}
