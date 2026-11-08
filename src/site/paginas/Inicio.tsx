@@ -13,9 +13,9 @@ export default function Inicio() {
     <>
       <Capa />
       <Manifesto />
+      <FaixaComoChegar />
       <ACasa />
       <OMapa />
-      <FaixaComoChegar />
       <AsTradicoes />
       <Reservar />
     </>

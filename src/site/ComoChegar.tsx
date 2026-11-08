@@ -53,23 +53,27 @@ export function FaixaComoChegar() {
   );
 }
 
-// Página do mapa: um postal pequeno e emoldurado, ao centro.
+// Página do mapa: um postal emoldurado. No telemóvel fica tudo ao centro; no computador o postal fica à
+// esquerda e o texto ao lado, alinhado à esquerda.
 export function PostalComoChegar() {
   return (
-    <section aria-label="Como chegar" className="bg-linho py-24 lg:py-32">
-      <div className="contentor flex flex-col items-center text-center">
-        <div className="relative border border-terra/20 bg-creme p-2 shadow-[0_24px_40px_-28px_rgb(68_62_43/0.5)]">
-          <div className="relative size-60 overflow-hidden sm:size-72">
+    <section aria-label="Como chegar" className="bg-linho py-24 lg:py-36">
+      <div className="contentor flex flex-col items-center text-center lg:flex-row lg:justify-center lg:gap-24 lg:text-left">
+        <div className="relative shrink-0 border border-terra/20 bg-creme p-2 shadow-[0_24px_40px_-28px_rgb(68_62_43/0.5)] lg:-rotate-1">
+          <div className="relative size-60 overflow-hidden sm:size-72 lg:size-[26rem]">
             <div className="absolute inset-0 bg-terra/45" style={ruas('ruas-postal.svg')} aria-hidden />
             <Pino altura="h-14" cor="text-musgo" />
             <Creditos className="bottom-1.5 right-2 text-terra/60" />
           </div>
         </div>
-        <Linhas as="h2" className="titulo t-grande mt-12">Estamos <em>aqui.</em></Linhas>
-        <p className="mt-3 text-sm tabular-nums text-terra/80">Ladoeiro, Idanha-a-Nova · {localizacao.texto}</p>
-        <a href={localizacao.googleMaps} target="_blank" rel="noreferrer" className="ligacao mt-8 text-musgo">
-          Abrir com o Google Maps <ArrowUpRight size={18} strokeWidth={1.4} aria-hidden />
-        </a>
+        <div className="mt-12 flex flex-col items-center lg:mt-0 lg:max-w-md lg:items-start">
+          <Linhas as="h2" className="titulo t-grande">Estamos <em>aqui.</em></Linhas>
+          <p className="mt-3 text-sm tabular-nums text-terra/80 lg:mt-5 lg:text-base">Ladoeiro, Idanha-a-Nova<span className="lg:hidden"> · </span><br className="max-lg:hidden" />{localizacao.texto}</p>
+          <p className="corrido mt-6 hidden text-terra/85 lg:block">A casa fica dentro da aldeia, perto da Igreja Matriz. Abra a localização no telemóvel e o Google Maps leva-o até à porta.</p>
+          <a href={localizacao.googleMaps} target="_blank" rel="noreferrer" className="ligacao mt-8 text-musgo lg:mt-10">
+            Abrir com o Google Maps <ArrowUpRight size={18} strokeWidth={1.4} aria-hidden />
+          </a>
+        </div>
       </div>
     </section>
   );

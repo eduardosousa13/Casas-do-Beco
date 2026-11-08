@@ -35,6 +35,8 @@ export default function Mapa() {
         <Aviso />
       </section>
 
+      <PostalComoChegar />
+
       <section id="lugares" className="scroll-mt-16 bg-creme pb-40 pt-24 lg:pb-52 lg:pt-32">
         <div className="contentor">
           <Linhas as="h2" className="titulo t-grande max-w-[16ch]">O que há <em>à volta da casa.</em></Linhas>
@@ -57,7 +59,6 @@ export default function Mapa() {
           </div>
         </div>
       </section>
-      <PostalComoChegar />
     </>
   );
 }
