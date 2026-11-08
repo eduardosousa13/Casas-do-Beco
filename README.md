@@ -41,7 +41,7 @@ O formulário usa `/api/contact` e confirma após guardar a mensagem em PostgreS
 
 ## Admin e reservas
 
-`/admin` tem Resumo, Calendário mensal/agenda mobile, Reservas e Financeiro. Conta owner única, segundo fator obrigatório, registo público fechado. Configuração física/editorial é manutenção técnica; o proprietário gere estadias, contactos, bloqueios e pedidos financeiros. Criar a primeira conta localmente com `npm run pms:owner`; não existe credencial predefinida.
+`/admin` tem Resumo, Calendário mensal/agenda mobile, Reservas e Financeiro. Contas owner criadas por terminal (primeira e adicionais com `--adicional`), segundo fator obrigatório, registo público fechado. Configuração física/editorial é manutenção técnica; o proprietário gere estadias, contactos, bloqueios e pedidos financeiros. Criar a primeira conta localmente com `npm run pms:owner`; não existe credencial predefinida.
 
 - `src/`: componentes públicos e admin React.
 - `server/`: transporte HTTP, rotas, templates e contactos.
