@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTopo } from '../Estrutura';
+import { FaixaComoChegar } from '../ComoChegar';
 import { BrasaoDesenhado, Logo, PinoCasa } from '../Marca';
 import { Capela, Linha, Estandarte, Melancia } from '../desenhos';
 import { Acende, aposAbertura, GRANDE, gsap, Imagem, Ligacao, Linhas, Revela, semMovimento, useGSAP } from '../kit';
@@ -14,6 +15,7 @@ export default function Inicio() {
       <Manifesto />
       <ACasa />
       <OMapa />
+      <FaixaComoChegar />
       <AsTradicoes />
       <Reservar />
     </>

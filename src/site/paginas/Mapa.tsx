@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowDown, Minus, Plus, X } from 'lucide-react';
 import { useTopo } from '../Estrutura';
 import { PinoCasa } from '../Logo';
+import { PostalComoChegar } from '../ComoChegar';
 import { FotoPorFazer, gsap, Imagem, irPara, Ligacao, Linhas, Revela, semMovimento } from '../kit';
 import { fotos, pontos, type Ponto } from '../dados';
 
@@ -56,6 +57,7 @@ export default function Mapa() {
           </div>
         </div>
       </section>
+      <PostalComoChegar />
     </>
   );
 }
@@ -201,7 +203,8 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
             <button key={p.id} type="button" onClick={() => escolher(p)} aria-pressed={ativo?.id === p.id}
               className="group absolute origin-bottom [transform:translate(-50%,-100%)_scale(var(--inv,1))]"
               style={{ left: p.x, top: p.y }}>
-              <span className={`mb-2 block whitespace-nowrap bg-noite/85 px-3 py-1.5 text-[0.8rem] font-medium text-creme transition-[opacity,transform] duration-300 ease-(--ease-sai) group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 ${ativo?.id === p.id ? 'opacity-100' : 'translate-y-1 opacity-0'}`}>{p.nome}</span>
+              {/* O nome fica por cima do ponto; perto das margens da fotografia encosta-se ao lado de dentro para não sair do ecrã. */}
+              <span className={`absolute bottom-full mb-2 block whitespace-nowrap bg-noite/85 ${p.x < 260 ? 'left-0' : p.x > L - 260 ? 'right-0' : 'left-1/2 -translate-x-1/2'} px-3 py-1.5 text-[0.8rem] font-medium text-creme transition-[opacity,transform] duration-300 ease-(--ease-sai) group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 ${ativo?.id === p.id ? 'opacity-100' : 'translate-y-1 opacity-0'}`}>{p.nome}</span>
               {p.id === 'casa' ? (
                 <PinoCasa className="mx-auto block h-12 w-auto drop-shadow-[0_4px_8px_rgb(0_0_0/0.45)] transition-transform duration-300 ease-(--ease-sai) group-hover:-translate-y-1" />
               ) : (

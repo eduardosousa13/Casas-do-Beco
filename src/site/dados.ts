@@ -89,3 +89,10 @@ export const pontos: Ponto[] = [
 ];
 
 export const telefoneLink = `tel:${contactos.telefone.replace(/\s/g, '')}`;
+
+// Localização da casa dada pelo Eduardo a 08/11/2026 (39°50'05.6"N 7°15'36.8"W). O link abre a app do
+// Google Maps no telemóvel e o site no computador.
+export const localizacao = {
+  texto: '39°50′05.6″N · 7°15′36.8″W',
+  googleMaps: 'https://www.google.com/maps/search/?api=1&query=39.834889%2C-7.260222',
+};
