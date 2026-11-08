@@ -57,7 +57,7 @@ function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
 
   useEffect(() => {
     // O cabeçalho fica sempre visível. Na página inicial só ganha fundo depois de o logótipo grande sair do ecrã.
-    const f = () => setDesceu(scrollY > (inicio ? innerHeight * 0.85 : 40));
+    const f = () => setDesceu(scrollY > (inicio ? innerHeight * 0.8 : 40));
     f();
     addEventListener('scroll', f, { passive: true });
     return () => removeEventListener('scroll', f);
@@ -78,8 +78,9 @@ function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
             </span>
             Menu
           </button>
-          <Link to="/" aria-label="Casas do Beco, página inicial"
-            className={`transition-[opacity,transform] duration-700 ease-(--ease-sai) ${inicio && !desceu ? 'pointer-events-none -translate-y-2 opacity-0' : ''}`}>
+          {/* Na página inicial com movimento, quem mostra o emblema é a saída da hero (Inicio.tsx). */}
+          <Link to="/" aria-label="Casas do Beco, página inicial" data-emblema-topo
+            className={semMovimento() ? `transition-[opacity,transform] duration-700 ease-(--ease-sai) ${inicio && !desceu ? 'pointer-events-none -translate-y-2 opacity-0' : ''}` : ''}>
             <Emblema className="h-10 w-auto" />
           </Link>
           <Link to="/reservas" className={`botao botao-pequeno justify-self-end ${claro ? 'botao-claro' : ''}`}>

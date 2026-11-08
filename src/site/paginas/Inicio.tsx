@@ -2,10 +2,11 @@ import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTopo } from '../Estrutura';
 import { FaixaComoChegar } from '../ComoChegar';
-import { BrasaoDesenhado, Logo, PinoCasa } from '../Marca';
+import { BrasaoDesenhado, PinoCasa } from '../Marca';
 import { Capela, Linha, Estandarte, Melancia } from '../desenhos';
 import { Acende, aposAbertura, GRANDE, gsap, Imagem, Ligacao, Linhas, Revela, semMovimento, useGSAP } from '../kit';
 import { fotos, pontos } from '../dados';
+import { cheio, emblema, TRANSFORMA, VISTA } from '../logotipo';
 
 export default function Inicio() {
   useTopo('escuro');
@@ -22,6 +23,20 @@ export default function Inicio() {
   );
 }
 
+// O logótipo em partes: emblema (cheio e traço), letras uma a uma e réguas, para cada parte sair à sua maneira.
+function LogoPartes({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox={VISTA} className={className} role="img" aria-label="Casas do Beco, Ladoeiro" fill="currentColor" overflow="visible">
+      <g data-emblema><g transform={TRANSFORMA}>{cheio.slice(0, 20).map((d, i) => <path key={i} d={d} />)}</g></g>
+      <g transform={TRANSFORMA} fill="none" stroke="currentColor" strokeWidth={22} strokeLinejoin="round">
+        {emblema.map((d, i) => <path key={i} data-traco d={d} />)}
+      </g>
+      {cheio.slice(20, 39).map((d, i) => <g key={i} data-letra><g transform={TRANSFORMA}><path d={d} /></g></g>)}
+      <g data-reguas>{cheio.slice(39).map((d, i) => <g key={i} transform={TRANSFORMA}><path d={d} /></g>)}</g>
+    </svg>
+  );
+}
+
 // O logótipo da abertura acaba exatamente aqui: mesmo tamanho, mesma posição, mesma cor.
 function Capa() {
   const ref = useRef<HTMLElement>(null);
@@ -35,30 +50,44 @@ function Capa() {
       gsap.fromTo(q('[data-fundo]'), { scale: 1.1 }, { scale: 1, duration: 2.6, ease: 'expo.out' });
     });
 
-    // Scroll: o logótipo encolhe e sobe para o lugar do emblema do cabeçalho; a pintura aproxima-se.
     const mm = gsap.matchMedia();
     mm.add({ grande: GRANDE, pequeno: '(max-width: 1023px), (pointer: coarse)' }, ctx => {
       const grande = ctx.conditions?.grande;
-      const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: grande ? 0.6 : true } });
-      tl.to(q('[data-logo]'), { scale: grande ? 0.42 : 0.7, yPercent: grande ? -62 : -30, opacity: 0, ease: 'power1.in' }, 0)
+      const scrub = grande ? 0.6 : true;
+
+      // A pintura aproxima-se e escurece durante toda a hero.
+      gsap.timeline({ scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub } })
         .to(q('[data-fundo]'), { scale: 1.14, ease: 'none' }, 0)
         .to(q('[data-veu]'), { opacity: 0.55, ease: 'none' }, 0);
+
+      // Saída (enquanto a hero está presa, 80% do ecrã): as réguas recolhem, as letras sobem uma a uma,
+      // o emblema perde o cheio e o traço desfaz-se (a abertura ao contrário); no computador a pintura
+      // encolhe para um quadro sobre o creme. No fim entra o emblema do cabeçalho.
+      const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: 'top top', end: () => `+=${innerHeight * 0.8}`, scrub, invalidateOnRefresh: true } });
+      tl.to(q('[data-reguas]'), { scaleX: 0, transformOrigin: '50% 50%', duration: 0.3, ease: 'power2.in' }, 0)
+        .to(q('[data-letra]'), { y: -50, opacity: 0, duration: 0.25, stagger: 0.012, ease: 'power2.in' }, 0)
+        .to(q('[data-emblema]'), { opacity: 0, duration: 0.2, ease: 'none' }, 0.1)
+        .fromTo(q('[data-traco]'), { drawSVG: '0% 100%' }, { drawSVG: '100% 100%', duration: 0.6, stagger: 0.02, ease: 'power1.in' }, 0.2)
+        .fromTo(document.querySelector('[data-emblema-topo]'), { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.15, ease: 'power2.out' }, 0.85);
+      if (grande) tl.to(q('[data-quadro]'), { scale: 0.8, duration: 1, ease: 'power2.inOut' }, 0);
     });
     return parar;
   }, { scope: ref });
 
   return (
-    <section ref={ref} className="relative h-dvh lg:h-[150dvh]" aria-label="Início">
+    <section ref={ref} className="relative h-[180dvh]" aria-label="Início">
       <h1 className="sr-only">Casas do Beco, casas de aldeia no Ladoeiro, Idanha-a-Nova</h1>
-      <div className="sticky top-0 h-dvh overflow-hidden bg-noite text-cal">
-        <div data-fundo className="absolute inset-0 will-change-transform">
-          <Imagem foto={fotos.hero} prioridade sizes="100vw" className="h-full w-full object-cover" />
+      <div className="sticky top-0 h-dvh overflow-hidden bg-creme text-cal">
+        <div data-quadro className="absolute inset-0 overflow-hidden bg-noite will-change-transform">
+          <div data-fundo className="absolute inset-0 will-change-transform">
+            <Imagem foto={fotos.hero} prioridade sizes="100vw" className="h-full w-full object-cover" />
+          </div>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_46%_44%_at_50%_45%,rgb(38_50_31/0.62),rgb(38_50_31/0.2)_70%,transparent),linear-gradient(to_bottom,rgb(38_50_31/0.4),transparent_28%,transparent_60%,rgb(38_50_31/0.45))]" />
+          <div data-veu className="absolute inset-0 bg-noite opacity-0" />
         </div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_46%_44%_at_50%_45%,rgb(38_50_31/0.62),rgb(38_50_31/0.2)_70%,transparent),linear-gradient(to_bottom,rgb(38_50_31/0.4),transparent_28%,transparent_60%,rgb(38_50_31/0.45))]" />
-        <div data-veu className="absolute inset-0 bg-noite opacity-0" />
         <div className="absolute inset-0 grid place-items-center">
-          <div data-logo className="will-change-transform">
-            <Logo className="h-auto w-[min(62vw,20rem,42svh)]" />
+          <div data-logo>
+            <LogoPartes className="block h-auto w-[min(62vw,20rem,42svh)]" />
           </div>
         </div>
       </div>
