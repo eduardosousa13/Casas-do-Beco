@@ -52,19 +52,12 @@ export default function Estrutura() {
 
 function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
   const [desceu, setDesceu] = useState(false);
-  const [escondido, setEscondido] = useState(false);
   const [menu, setMenu] = useState(false);
   const { pathname } = useLocation();
 
   useEffect(() => {
-    let ultimo = scrollY;
-    const f = () => {
-      const y = scrollY;
-      // Na página inicial o cabeçalho só ganha fundo depois de o logótipo grande sair do ecrã.
-      setDesceu(y > (inicio ? innerHeight * 0.85 : 40));
-      setEscondido(y > ultimo && y > innerHeight * 1.1);
-      ultimo = y;
-    };
+    // O cabeçalho fica sempre visível. Na página inicial só ganha fundo depois de o logótipo grande sair do ecrã.
+    const f = () => setDesceu(scrollY > (inicio ? innerHeight * 0.85 : 40));
     f();
     addEventListener('scroll', f, { passive: true });
     return () => removeEventListener('scroll', f);
@@ -75,7 +68,7 @@ function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
   const cor = claro ? 'text-creme' : 'text-terra';
   return (
     <>
-      <header className={`fixed inset-x-0 top-0 z-50 transition-[transform,background-color,color,box-shadow] duration-500 ease-(--ease-sai) ${escondido && !menu ? '-translate-y-full' : ''} ${desceu ? 'bg-creme shadow-[0_1px_0_rgb(68_62_43/0.12)]' : 'bg-transparent'} ${cor}`}>
+      <header className={`fixed inset-x-0 top-0 z-50 transition-[transform,background-color,color,box-shadow] duration-500 ease-(--ease-sai) ${desceu ? 'bg-creme shadow-[0_1px_0_rgb(68_62_43/0.12)]' : 'bg-transparent'} ${cor}`}>
         <div className="contentor grid h-[4.5rem] grid-cols-[1fr_auto_1fr] items-center">
           <button type="button" onClick={() => setMenu(true)} aria-haspopup="dialog" aria-expanded={menu}
             className="group flex items-center gap-3 justify-self-start py-3 text-[0.95rem] font-medium">
