@@ -41,6 +41,8 @@ export function TextoTermos() {
         <p>Dispomos de Livro de Reclamações físico na casa e eletrónico em <a href="https://www.livroreclamacoes.pt" target="_blank" rel="noreferrer" className="underline">livroreclamacoes.pt</a>. Em caso de litígio, o consumidor pode recorrer a uma entidade de resolução alternativa de litígios de consumo; a lista está no <a href="https://www.consumidor.gov.pt" target="_blank" rel="noreferrer" className="underline">Portal do Consumidor</a>. {falta('Indicar a entidade competente da zona.')}</p>
       </Parte>
       <p>Dúvidas: <a href={`mailto:${contactos.email}`} className="underline">{contactos.email}</a>.</p>
+      {/* Crédito pedido pela licença ODbL das ruas desenhadas nos mapas "Como chegar". */}
+      <p className="mt-8 text-xs opacity-60">Desenho das ruas com dados © contribuidores do OpenStreetMap.</p>
     </>
   );
 }
