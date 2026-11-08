@@ -75,7 +75,7 @@ O endereço é `/admin`, com login em `/admin/login`. A autenticação usa [Bett
 
 1. Execute `npm run pms:migrate`.
 2. Configure `BETTER_AUTH_SECRET` com pelo menos 32 caracteres aleatórios e `PUBLIC_SITE_URL` com a origem exata do preview/site. Gere o segredo com `openssl rand -base64 48`; guarde-o apenas no ambiente protegido. No ambiente local deste projeto já foi gerado sem o colocar no Git.
-3. Execute `npm run pms:owner` num terminal interativo. Escolha nome, email e palavra-passe (mínimo 12 caracteres, entrada oculta e confirmação). O comando só cria o primeiro proprietário.
+3. Execute `npm run pms:owner` num terminal interativo. Escolha nome, email e palavra-passe (mínimo 12 caracteres, entrada oculta e confirmação). Sem opções só cria o primeiro proprietário; para outra conta com o mesmo acesso, use `npm run pms:owner -- --adicional` (em produção: `node dist/pms/bootstrap-owner.mjs --adicional`).
 4. Entre no painel e adicione a chave fornecida à aplicação autenticadora como TOTP, 6 dígitos, intervalo de 30 segundos. Confirme um código e guarde os códigos de recuperação num local privado.
 
 Reinicie o servidor quando alterar variáveis. As origens locais `localhost` e `127.0.0.1` são aceites na mesma porta; outras origens não. Fora desses endereços locais, HTTPS é obrigatório. Nunca perder/rodar o segredo sem um procedimento de migração: protege sessões e dados do segundo fator e deve acompanhar o backup protegido da base.
