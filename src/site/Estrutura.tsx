@@ -58,11 +58,15 @@ function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
   useEffect(() => {
     // O cabeçalho fica sempre visível. Na página inicial só ganha fundo depois de o logótipo grande sair do ecrã;
     // no computador a pintura encolhe logo para um quadro sobre o creme, por isso o fundo e a letra escura entram cedo.
+    // A posição vem do ScrollTrigger, que já a leu neste scroll: ler scrollY aqui, logo depois de as animações
+    // escreverem estilos, obrigava o navegador a refazer o layout em cada evento de scroll.
     const quadro = () => inicio && !semMovimento() && matchMedia(GRANDE).matches;
-    const f = () => setDesceu(scrollY > (inicio ? innerHeight * (quadro() ? 0.08 : 0.8) : 40));
-    f();
-    addEventListener('scroll', f, { passive: true });
-    return () => removeEventListener('scroll', f);
+    let limiar = 0;
+    const medir = () => { limiar = inicio ? innerHeight * (quadro() ? 0.08 : 0.8) : 40; };
+    medir();
+    setDesceu(scrollY > limiar);
+    const st = ScrollTrigger.create({ start: 0, end: 'max', onRefresh: self => { medir(); setDesceu(self.scroll() > limiar); }, onUpdate: self => setDesceu(self.scroll() > limiar) });
+    return () => st.kill();
   }, [inicio]);
   useEffect(() => setMenu(false), [pathname]);
 
