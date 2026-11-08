@@ -67,7 +67,7 @@ function Capa() {
       tl.to(q('[data-reguas]'), { scaleX: 0, transformOrigin: '50% 50%', duration: 0.3, ease: 'power2.in' }, 0)
         .to(q('[data-letra]'), { y: -50, opacity: 0, duration: 0.25, stagger: 0.012, ease: 'power2.in' }, 0)
         .to(q('[data-emblema]'), { opacity: 0, duration: 0.2, ease: 'none' }, 0.1)
-        .fromTo(q('[data-traco]'), { drawSVG: '0% 100%' }, { drawSVG: '100% 100%', duration: 0.6, stagger: 0.02, ease: 'power1.in' }, 0.2)
+        .fromTo(q('[data-traco]'), { traco: '0% 100%' }, { traco: '100% 100%', duration: 0.6, stagger: 0.02, ease: 'power1.in' }, 0.2)
         .fromTo(document.querySelector('[data-emblema-topo]'), { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.15, ease: 'power2.out' }, 0.85);
       if (grande) tl.to(q('[data-quadro]'), { scale: 0.8, duration: 1, ease: 'power2.inOut' }, 0);
     });
@@ -169,7 +169,7 @@ function OMapa() {
     const el = ref.current!;
     const st = { trigger: el.querySelector('[data-foto]'), start: 'top 75%', end: 'bottom 60%', scrub: 0.8 };
     gsap.fromTo(el.querySelectorAll('[data-pino]'), { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, stagger: 0.15, ease: 'back.out(2)', scrollTrigger: st });
-    gsap.fromTo(el.querySelector('[data-rota]'), { drawSVG: '0%' }, { drawSVG: '100%', ease: 'none', scrollTrigger: st });
+    gsap.fromTo(el.querySelector('[data-rota]'), { traco: '0%' }, { traco: '100%', ease: 'none', scrollTrigger: st });
   }, { scope: ref });
 
   // Percurso pelos pontos, da piscina à capela, a passar pela casa, pelo ribeiro e pelo chafariz.

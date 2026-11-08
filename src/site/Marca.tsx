@@ -10,7 +10,7 @@ export function EmblemaDesenhado({ className = '', inicio = 'top 80%', fim = 'bo
   useGSAP(() => {
     if (semMovimento() || !ref.current) return;
     const tl = gsap.timeline({ scrollTrigger: { trigger: ref.current, start: inicio, end: fim, scrub: 0.8 } });
-    tl.fromTo(ref.current.querySelectorAll('.traco'), { drawSVG: '0%' }, { drawSVG: '100%', ease: 'none', stagger: 0.06, duration: 1 })
+    tl.fromTo(ref.current.querySelectorAll('.traco'), { traco: '0%' }, { traco: '100%', ease: 'none', stagger: 0.06, duration: 1 })
       .fromTo(ref.current.querySelector('.cheio'), { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.5 }, '>-0.15');
   }, { scope: ref });
   return (
@@ -32,7 +32,7 @@ export function BrasaoDesenhado({ className = '', inicio = 'top 80%', fim = 'bot
   useGSAP(() => {
     if (semMovimento() || !ref.current) return;
     const tl = gsap.timeline({ scrollTrigger: { trigger: ref.current, start: inicio, end: fim, scrub: 0.8 } });
-    tl.fromTo(ref.current.querySelectorAll('.traco'), { drawSVG: '0%' }, { drawSVG: '100%', ease: 'none', stagger: { amount: 1.2 }, duration: 0.6 })
+    tl.fromTo(ref.current.querySelectorAll('.traco'), { traco: '0%' }, { traco: '100%', ease: 'none', stagger: { amount: 1.2 }, duration: 0.6 })
       .fromTo(ref.current.querySelector('.cheio'), { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.5 }, '>-0.15');
   }, { scope: ref });
   return (

@@ -3,14 +3,14 @@ import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
-import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 import { useGSAP } from '@gsap/react';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import { ArrowRight } from 'lucide-react';
 import { fontes, type Foto } from './dados';
+import './traco';
 
-gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin, useGSAP);
+gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 // No telemóvel a barra do navegador encolhe e cresce ao fazer scroll; isso não deve recalcular as animações.
 ScrollTrigger.config({ ignoreMobileResize: true });
 export { gsap, ScrollTrigger, useGSAP };
@@ -113,8 +113,8 @@ export function Desenho({ children, className = '', viewBox, inicio = 'top 85%',
   useGSAP(() => {
     if (semMovimento() || !ref.current) return;
     const tracos = ref.current.querySelectorAll('path, line, circle, ellipse, polyline, rect');
-    gsap.fromTo(tracos, { drawSVG: '0%' }, {
-      drawSVG: '100%', ease: 'none', stagger: 0.12,
+    gsap.fromTo(tracos, { traco: '0%' }, {
+      traco: '100%', ease: 'none', stagger: 0.12,
       scrollTrigger: { trigger: ref.current, start: inicio, end: fim, scrub: 0.8 },
     });
   }, { scope: ref });
