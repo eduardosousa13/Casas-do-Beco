@@ -28,11 +28,12 @@ export default function Estrutura() {
     }
     paraOTopo();
   }, [pathname, hash]);
+  // O próprio ScrollTrigger já recalcula no load; debaixo da abertura quem recalcula é a fila do useAnimacao,
+  // quando acabar de preparar tudo. Cada recálculo refaz todas as animações da página.
   useEffect(() => {
+    if (document.documentElement.dataset.abertura === 'a') return;
     const t = setTimeout(() => ScrollTrigger.refresh(), 300);
-    const carregou = () => ScrollTrigger.refresh();
-    addEventListener('load', carregou);
-    return () => { clearTimeout(t); removeEventListener('load', carregou); };
+    return () => clearTimeout(t);
   }, [pathname]);
   useEffect(() => { primeira.current = false; }, []);
   useEffect(() => ligarScrollSuave(), []);

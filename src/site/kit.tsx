@@ -13,7 +13,7 @@ import './traco';
 gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 // No telemóvel a barra do navegador encolhe e cresce ao fazer scroll; isso não deve recalcular as animações.
 ScrollTrigger.config({ ignoreMobileResize: true });
-export { gsap, ScrollTrigger, useGSAP };
+export { gsap, ScrollTrigger };
 
 // Sem movimento: preferência do sistema, ou ?estatico no endereço (para rever o estado final).
 const estatico = typeof location !== 'undefined' && new URLSearchParams(location.search).has('estatico');
@@ -41,10 +41,36 @@ export function aposAbertura(f: () => void) {
   return () => removeEventListener('cdb:abertura', f);
 }
 
+// useGSAP que, durante a abertura, não prepara tudo de uma vez. Debaixo da abertura a página não se vê nem
+// faz scroll, mas preparar ali todas as animações juntas (SplitText, ScrollTrigger) prendia um telemóvel fraco
+// quase um segundo e o desenho do logótipo parava a meio. Assim cada componente prepara as suas numa tarefa
+// à parte, com um fotograma livre entre elas; se a abertura fechar antes (clique, tecla), o que faltar
+// prepara-se logo. Fora da abertura corre de imediato, como o useGSAP.
+const fila = new Set<() => void>();
+let aCorrer = false;
+const proxima = () => requestAnimationFrame(() => setTimeout(correr));
+function correr() {
+  const f = fila.values().next().value;
+  if (!f) { aCorrer = false; ScrollTrigger.refresh(); return; }
+  fila.delete(f); f(); proxima();
+}
+if (typeof window !== 'undefined') addEventListener('cdb:abertura', () => { fila.forEach(f => { fila.delete(f); f(); }); }, { once: true });
+
+type Preparar = (ctx: gsap.Context, seguro?: <T extends Function>(f: T) => T) => unknown;
+export function useAnimacao(preparar: Preparar, opcoes?: { scope?: { current: unknown }; dependencies?: unknown[] }) {
+  return useGSAP((ctx: gsap.Context, seguro?: <T extends Function>(f: T) => T) => {
+    if (document.documentElement.dataset.abertura !== 'a') return preparar(ctx, seguro);
+    const f = () => { ctx.add(() => preparar(ctx, seguro)); };
+    fila.add(f);
+    if (!aCorrer) { aCorrer = true; proxima(); }
+    return () => { fila.delete(f); };
+  }, opcoes);
+}
+
 // Texto que sobe linha a linha por trás de uma máscara quando entra no ecrã.
 export function Linhas({ as: T = 'p', className = '', children, atraso = 0, imediato = false }: { as?: ElementType; className?: string; children: ReactNode; atraso?: number; imediato?: boolean }) {
   const ref = useRef<HTMLElement>(null);
-  useGSAP(() => {
+  useAnimacao(() => {
     if (semMovimento() || !ref.current) return;
     const el = ref.current;
     SplitText.create(el, {
@@ -61,7 +87,7 @@ export function Linhas({ as: T = 'p', className = '', children, atraso = 0, imed
 // Parágrafo que ganha cor palavra a palavra à medida que se lê (o efeito do Hotel Odisej).
 export function Acende({ as: T = 'p', className = '', children }: { as?: ElementType; className?: string; children: ReactNode }) {
   const ref = useRef<HTMLElement>(null);
-  useGSAP(() => {
+  useAnimacao(() => {
     if (semMovimento() || !ref.current) return;
     const el = ref.current;
     SplitText.create(el, {
@@ -91,7 +117,7 @@ export function Imagem({ foto, sizes = '100vw', className = '', prioridade = fal
 // Fotografia que abre de baixo para cima ao entrar e desliza devagar dentro da moldura.
 export function Revela({ foto, className = '', sizes, paralaxe = true }: { foto: Foto; className?: string; sizes?: string; paralaxe?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
-  useGSAP(() => {
+  useAnimacao(() => {
     if (semMovimento() || !ref.current) return;
     const img = ref.current.querySelector('img');
     const st = { trigger: ref.current, start: 'top 92%', once: true };
@@ -110,7 +136,7 @@ export function Revela({ foto, className = '', sizes, paralaxe = true }: { foto:
 // Ao chegar ao fim fica o desenho completo; sem movimento aparece já desenhado.
 export function Desenho({ children, className = '', viewBox, inicio = 'top 85%', fim = 'bottom 45%', titulo, esticar = false }: { children: ReactNode; className?: string; viewBox: string; inicio?: string; fim?: string; titulo?: string; esticar?: boolean }) {
   const ref = useRef<SVGSVGElement>(null);
-  useGSAP(() => {
+  useAnimacao(() => {
     if (semMovimento() || !ref.current) return;
     const tracos = ref.current.querySelectorAll('path, line, circle, ellipse, polyline, rect');
     gsap.fromTo(tracos, { traco: '0%' }, {

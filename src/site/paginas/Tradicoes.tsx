@@ -1,13 +1,13 @@
 import { useRef } from 'react';
 import { useTopo } from '../Estrutura';
 import { Estandarte, Melancia } from '../desenhos';
-import { Acende, gsap, Imagem, Ligacao, Linhas, Revela, semMovimento, useGSAP } from '../kit';
+import { Acende, gsap, Imagem, Ligacao, Linhas, Revela, semMovimento, useAnimacao } from '../kit';
 import { fotos } from '../dados';
 
 export default function Tradicoes() {
   useTopo('escuro');
   const ref = useRef<HTMLElement>(null);
-  useGSAP(() => {
+  useAnimacao(() => {
     if (semMovimento()) return;
     const el = ref.current!;
     gsap.fromTo(el.querySelector('[data-fundo]'), { scale: 1.12 }, { scale: 1, duration: 2.4, ease: 'expo.out' });

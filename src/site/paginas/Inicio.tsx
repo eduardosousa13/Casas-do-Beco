@@ -4,7 +4,7 @@ import { useTopo } from '../Estrutura';
 import { FaixaComoChegar } from '../ComoChegar';
 import { BrasaoDesenhado, PinoCasa } from '../Marca';
 import { Capela, Linha, Estandarte, Melancia } from '../desenhos';
-import { Acende, aposAbertura, GRANDE, gsap, Imagem, Ligacao, Linhas, Revela, semMovimento, useGSAP } from '../kit';
+import { Acende, aposAbertura, GRANDE, gsap, Imagem, Ligacao, Linhas, Revela, semMovimento, useAnimacao } from '../kit';
 import { fotos, pontos } from '../dados';
 import { cheio, emblema, TRANSFORMA, VISTA } from '../logotipo';
 
@@ -40,7 +40,7 @@ function LogoPartes({ className = '' }: { className?: string }) {
 // O logótipo da abertura acaba exatamente aqui: mesmo tamanho, mesma posição, mesma cor.
 function Capa() {
   const ref = useRef<HTMLElement>(null);
-  useGSAP(() => {
+  useAnimacao(() => {
     const el = ref.current!;
     const q = gsap.utils.selector(el);
     if (semMovimento()) return;
@@ -120,7 +120,7 @@ const fitaCasa = [fotos.entrada, fotos.cozinha, fotos.quarto, fotos.banho, fotos
 
 function ACasa() {
   const ref = useRef<HTMLElement>(null);
-  useGSAP(() => {
+  useAnimacao(() => {
     if (semMovimento()) return;
     const el = ref.current!;
     const mm = gsap.matchMedia();
@@ -164,7 +164,7 @@ function ACasa() {
 
 function OMapa() {
   const ref = useRef<HTMLElement>(null);
-  useGSAP(() => {
+  useAnimacao(() => {
     if (semMovimento()) return;
     const el = ref.current!;
     const st = { trigger: el.querySelector('[data-foto]'), start: 'top 75%', end: 'bottom 60%', scrub: 0.8 };
@@ -240,7 +240,7 @@ function AsTradicoes() {
 
 function Reservar() {
   const ref = useRef<HTMLElement>(null);
-  useGSAP(() => {
+  useAnimacao(() => {
     if (semMovimento()) return;
     const el = ref.current!;
     // A fotografia abre de uma janela estreita até ocupar o ecrã inteiro.

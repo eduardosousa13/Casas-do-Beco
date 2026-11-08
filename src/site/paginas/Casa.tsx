@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useTopo } from '../Estrutura';
-import { gsap, Imagem, Ligacao, Linhas, prenderScroll, semMovimento, useGSAP } from '../kit';
+import { gsap, Imagem, Ligacao, Linhas, prenderScroll, semMovimento, useAnimacao } from '../kit';
 import { fotos, type Foto } from '../dados';
 
 // Só fotografias: a ordem segue uma visita à casa, da rua aos quartos.
@@ -21,7 +21,7 @@ export default function Casa() {
   const [aberta, setAberta] = useState<number | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
-  useGSAP(() => {
+  useAnimacao(() => {
     if (semMovimento()) return;
     // Cada fotografia abre como uma cortina ao entrar no ecrã; as colunas sobem a velocidades diferentes.
     gsap.utils.toArray<HTMLElement>('[data-foto]').forEach(el => {
