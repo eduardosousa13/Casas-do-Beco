@@ -88,6 +88,10 @@ export const pontos: Ponto[] = [
     texto: 'Chafariz caiado com o arco pintado de laranja, junto ao recinto do Palco Multiusos, à beira dos olivais.' },
 ];
 
+// Reservas pelo site: desligadas até o cliente querer reservas e pagamentos online. Enquanto for false,
+// /reservas mostra ReservasBrevemente (contactos) e a página completa (Reservas.tsx) fica guardada.
+export const RESERVAS_ABERTAS = false;
+
 export const telefoneLink = `tel:${contactos.telefone.replace(/\s/g, '')}`;
 
 // Localização da casa dada pelo Eduardo a 08/11/2026 (39°50'05.6"N 7°15'36.8"W). O link abre a app do

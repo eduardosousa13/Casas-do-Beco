@@ -1,7 +1,7 @@
 import { useRef, type CSSProperties } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import { PinoCasa } from './Logo';
-import { gsap, Linhas, semMovimento, useGSAP } from './kit';
+import { gsap, Linhas, semMovimento, useAnimacao } from './kit';
 import { localizacao } from './dados';
 
 // Ruas do Ladoeiro tiradas do OpenStreetMap (scripts/ruas.cjs), com a casa no centro exato do desenho.
@@ -23,7 +23,7 @@ function Pino({ altura, cor }: { altura: string; cor: string }) {
 // Página inicial: faixa larga e baixa com as ruas, de ponta a ponta.
 export function FaixaComoChegar() {
   const ref = useRef<HTMLElement>(null);
-  useGSAP(() => {
+  useAnimacao(() => {
     if (semMovimento()) return;
     const el = ref.current!;
     gsap.fromTo(el.querySelector('[data-ruas]'), { scale: 1.12 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: true } });

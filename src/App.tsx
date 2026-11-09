@@ -4,6 +4,8 @@ import Inicio from './site/paginas/Inicio';
 import Casa from './site/paginas/Casa';
 import Mapa from './site/paginas/Mapa';
 import Reservas from './site/paginas/Reservas';
+import ReservasBrevemente from './site/paginas/ReservasBrevemente';
+import { RESERVAS_ABERTAS } from './site/dados';
 import Tradicoes from './site/paginas/Tradicoes';
 import SobreNos from './site/paginas/SobreNos';
 import { Privacidade, Termos } from './site/paginas/Legal';
@@ -17,7 +19,7 @@ export default function App() {
           <Route path="/" element={<Inicio />} />
           <Route path="/casa" element={<Casa />} />
           <Route path="/mapa" element={<Mapa />} />
-          <Route path="/reservas" element={<Reservas />} />
+          <Route path="/reservas" element={RESERVAS_ABERTAS ? <Reservas /> : <ReservasBrevemente />} />
           <Route path="/tradicoes" element={<Tradicoes />} />
           <Route path="/sobre-nos" element={<SobreNos />} />
           <Route path="/termos" element={<Termos />} />

@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Desenho, gsap, semMovimento, useGSAP } from './kit';
+import { Desenho, gsap, semMovimento, useAnimacao } from './kit';
 
 // Desenhos a traço da aldeia, feitos de geometria simples, que se desenham com o scroll.
 
@@ -61,7 +61,7 @@ export function Estandarte({ className = '' }: { className?: string }) {
 // Separador reto entre secções: um fio ocre que se estende de um lado ao outro ao entrar no ecrã.
 export function Linha({ traco = 'var(--color-ocre)', className = '' }: { traco?: string; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
-  useGSAP(() => {
+  useAnimacao(() => {
     if (semMovimento()) return;
     gsap.fromTo(ref.current, { scaleX: 0 }, { scaleX: 1, ease: 'none', scrollTrigger: { trigger: ref.current, start: 'top 95%', end: 'top 45%', scrub: 0.6 } });
   }, { scope: ref });
