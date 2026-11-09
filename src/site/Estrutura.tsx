@@ -6,6 +6,7 @@ import { Linha } from './desenhos';
 import { GRANDE, gsap, Imagem, irPara, ligarScrollSuave, paraOTopo, prenderScroll, ScrollTrigger, semMovimento } from './kit';
 import { contactos, paginas, telefoneLink } from './dados';
 import InfoLegal, { type Separador } from './InfoLegal';
+import { aplicarMeta } from './metas';
 
 // Cada página diz se o topo é escuro (fotografia por trás) ou claro, para o cabeçalho escolher a cor.
 type Topo = 'escuro' | 'claro';
@@ -35,6 +36,7 @@ export default function Estrutura() {
     const t = setTimeout(() => ScrollTrigger.refresh(), 300);
     return () => clearTimeout(t);
   }, [pathname]);
+  useEffect(() => aplicarMeta(pathname), [pathname]);
   useEffect(() => { primeira.current = false; }, []);
   useEffect(() => ligarScrollSuave(), []);
 

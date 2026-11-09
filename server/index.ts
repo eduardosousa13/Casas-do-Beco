@@ -10,6 +10,7 @@ import {staticResponse} from './static';
 import {database} from '../pms/db';
 import {runWorker} from '../pms/worker';
 import {readiness} from './health';
+import {comMeta} from '../src/site/metas';
 dotenv.config({path:'.env.local',override:false,quiet:true});
 const dev=process.argv.includes('--dev'),root=process.cwd(),clientRoot=path.join(root,'dist/client');
 const argumentPort=process.argv.indexOf('--port'),port=Number(argumentPort>=0?process.argv[argumentPort+1]:process.env.PORT||3000),host=process.env.HOST||'0.0.0.0';
@@ -34,7 +35,7 @@ const server=createServer({requestTimeout:15000,headersTimeout:10000},async(req,
    const boot=await adminBootstrap(request);if(boot instanceof Response){await sendResponse(req,res,boot);return;}
    await sendResponse(req,res,new Response((await html('admin.html',req.url||'/admin')).replace('__ADMIN_BOOTSTRAP__',bootstrapJson(boot)),{headers:{'Content-Type':'text/html; charset=utf-8'}}));return;
   }
-  if(publicPages.has(pathname)){await sendResponse(req,res,new Response(await html('index.html',req.url||'/'),{headers:{'Content-Type':'text/html; charset=utf-8'}}));return;}
+  if(publicPages.has(pathname)){await sendResponse(req,res,new Response(comMeta(await html('index.html',req.url||'/'),pathname),{headers:{'Content-Type':'text/html; charset=utf-8'}}));return;}
   if(legacyRedirects[pathname]){res.writeHead(301,{Location:legacyRedirects[pathname]});res.end();return;}
   if(pathname==='/reserva/resultado'||pathname==='/reserva/cancelada'){
    const name=pathname.endsWith('resultado')?'resultado':'cancelada';
@@ -44,7 +45,7 @@ const server=createServer({requestTimeout:15000,headersTimeout:10000},async(req,
   // Never expose the admin template directly, bypassing its server-side gate.
   if(pathname==='/admin.html'){res.writeHead(404);res.end('Página não encontrada.');return;}
   // Unknown page addresses get the site shell with a 404 status, so the visitor sees the designed 404 page.
-  const notFound=async()=>/\.[a-z0-9]+$/i.test(pathname)?new Response('Página não encontrada.',{status:404}):new Response(await html('index.html',req.url||'/'),{status:404,headers:{'Content-Type':'text/html; charset=utf-8'}});
+  const notFound=async()=>/\.[a-z0-9]+$/i.test(pathname)?new Response('Página não encontrada.',{status:404}):new Response(comMeta(await html('index.html',req.url||'/'),pathname),{status:404,headers:{'Content-Type':'text/html; charset=utf-8'}});
   if(dev){vite!.middlewares(req,res,()=>{if(!res.writableEnded)void notFound().then(r=>sendResponse(req,res,r));});return;}
   await sendResponse(req,res,await staticResponse(request,clientRoot)||await notFound());
  }catch(error){
