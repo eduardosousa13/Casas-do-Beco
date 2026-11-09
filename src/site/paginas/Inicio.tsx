@@ -6,7 +6,7 @@ import { BrasaoDesenhado, PinoCasa } from '../Marca';
 import { Capela, Linha, Estandarte, Melancia } from '../desenhos';
 import { Acende, aposAbertura, GRANDE, gsap, Imagem, Ligacao, Linhas, Revela, semMovimento, useAnimacao } from '../kit';
 import { fotos, pontos } from '../dados';
-import { cheio, emblema, TRANSFORMA, VISTA } from '../logotipo';
+import { cheio, TRANSFORMA, VISTA } from '../logotipo';
 
 export default function Inicio() {
   useTopo('escuro');
@@ -23,18 +23,25 @@ export default function Inicio() {
   );
 }
 
-// O logótipo em partes: emblema (cheio e traço), letras uma a uma e réguas, para cada parte sair à sua maneira.
+// O logótipo em partes: emblema, letras uma a uma e réguas, para cada parte sair à sua maneira.
 function LogoPartes({ className = '' }: { className?: string }) {
   return (
     <svg viewBox={VISTA} className={className} role="img" aria-label="Casas do Beco, Ladoeiro" fill="currentColor" overflow="visible">
       <g data-emblema><g transform={TRANSFORMA}>{cheio.slice(0, 20).map((d, i) => <path key={i} d={d} />)}</g></g>
-      <g transform={TRANSFORMA} fill="none" stroke="currentColor" strokeWidth={22} strokeLinejoin="round">
-        {emblema.map((d, i) => <path key={i} data-traco d={d} />)}
-      </g>
       {cheio.slice(20, 39).map((d, i) => <g key={i} data-letra><g transform={TRANSFORMA}><path d={d} /></g></g>)}
       <g data-reguas>{cheio.slice(39).map((d, i) => <g key={i} transform={TRANSFORMA}><path d={d} /></g>)}</g>
     </svg>
   );
+}
+
+// Para onde o emblema tem de ir: o emblema do cabeçalho. Mede-se sem transformações (offsets e o pai fixo).
+function voo(logo: HTMLElement) {
+  const alvo = document.querySelector('[data-emblema-topo] svg')!.getBoundingClientRect();
+  const caixa = logo.parentElement!.getBoundingClientRect();
+  const w = logo.offsetWidth, h = logo.offsetHeight;
+  const cx = (391 + 441 / 2 - 190) / 870 * w, cy = (143 + 558 / 2 - 130) / 940 * h;
+  const ex = caixa.left + caixa.width / 2 - w / 2 + cx, ey = caixa.top + caixa.height / 2 - h / 2 + cy;
+  return { origem: `${cx}px ${cy}px`, x: alvo.left + alvo.width / 2 - ex, y: alvo.top + alvo.height / 2 - ey, escala: alvo.height / (558 / 940 * h) };
 }
 
 // O logótipo da abertura acaba exatamente aqui: mesmo tamanho, mesma posição, mesma cor.
@@ -60,15 +67,19 @@ function Capa() {
         .to(q('[data-fundo]'), { scale: 1.14, ease: 'none' }, 0)
         .to(q('[data-veu]'), { opacity: 0.55, ease: 'none' }, 0);
 
-      // Saída (enquanto a hero está presa, 80% do ecrã): as réguas recolhem, as letras sobem uma a uma,
-      // o emblema perde o cheio e o traço desfaz-se (a abertura ao contrário); no computador a pintura
-      // encolhe para um quadro sobre o creme. No fim entra o emblema do cabeçalho.
+      // Saída (enquanto a hero está presa, 80% do ecrã): as réguas recolhem, as letras sobem uma a uma e o
+      // emblema segue sozinho até ao lugar exato do emblema do cabeçalho, onde troca com ele; no computador a
+      // pintura encolhe para um quadro sobre o creme. Só posição, tamanho e opacidade: o compositor faz o voo.
+      const logos = q('[data-logo]') as HTMLElement[];
       const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: 'top top', end: () => `+=${innerHeight * 0.8}`, scrub, invalidateOnRefresh: true } });
       tl.to(q('[data-reguas]'), { scaleX: 0, transformOrigin: '50% 50%', duration: 0.3, ease: 'power2.in' }, 0)
         .to(q('[data-letra]'), { y: -50, opacity: 0, duration: 0.25, stagger: 0.012, ease: 'power2.in' }, 0)
-        .to(q('[data-emblema]'), { opacity: 0, duration: 0.2, ease: 'none' }, 0.1)
-        .fromTo(q('[data-traco]'), { traco: '0% 100%' }, { traco: '100% 100%', duration: 0.6, stagger: 0.02, ease: 'power1.in' }, 0.2)
-        .fromTo(document.querySelector('[data-emblema-topo]'), { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.15, ease: 'power2.out' }, 0.85);
+        .to(logos, {
+          x: () => voo(logos[0]).x, y: () => voo(logos[0]).y, scale: () => voo(logos[0]).escala,
+          transformOrigin: () => voo(logos[0]).origem, duration: 0.8, ease: 'power2.inOut',
+        }, 0.2)
+        .fromTo(document.querySelector('[data-emblema-topo]'), { opacity: 0 }, { opacity: 1, duration: 0.001 }, 1)
+        .set(logos, { opacity: 0 }, 1);
       if (grande) tl.to(q('[data-quadro]'), { scale: 0.8, duration: 1, ease: 'power2.inOut' }, 0);
     });
     return parar;
@@ -86,7 +97,7 @@ function Capa() {
           <div data-veu className="absolute inset-0 bg-noite opacity-0" />
         </div>
         <div className="absolute inset-0 grid place-items-center">
-          <div data-logo>
+          <div data-logo className="will-change-transform">
             <LogoPartes className="block h-auto w-[min(62vw,20rem,42svh)]" />
           </div>
         </div>
