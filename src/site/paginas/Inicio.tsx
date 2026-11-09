@@ -87,7 +87,7 @@ function Capa() {
 
   return (
     <section ref={ref} className="relative h-[180dvh]" aria-label="Início">
-      <h1 className="sr-only">Casas do Beco, casas de aldeia no Ladoeiro, Idanha-a-Nova</h1>
+      <h1 className="sr-only">Casas do Beco, alojamento local no Ladoeiro, Idanha-a-Nova</h1>
       <div className="sticky top-0 h-dvh overflow-hidden bg-creme text-cal">
         <div data-quadro className="absolute inset-0 overflow-hidden bg-noite will-change-transform">
           <div data-fundo className="absolute inset-0 will-change-transform">

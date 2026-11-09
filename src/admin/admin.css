@@ -40,7 +40,9 @@
 .pms-admin nav a{display:flex;align-items:center;gap:12px;padding:14px 0;text-decoration:none;border-bottom:1px solid rgba(247,234,203,.14);font-size:15px;color:rgba(247,234,203,.85);transition:color .3s}
 .pms-admin nav a svg:last-child{margin-left:auto;opacity:0;transition:opacity .3s,transform .4s var(--ease)}
 .pms-admin nav a[aria-current=page],.pms-admin nav a:hover{color:var(--creme)}
-.pms-admin nav a[aria-current=page]{font-family:var(--serif);font-style:italic;font-size:19px}
+/* Página aberta: faixa ocre à esquerda, fundo claro e ícone ocre, para se ver logo onde se está. */
+.pms-admin nav a[aria-current=page]{font-family:var(--serif);font-style:italic;font-size:19px;padding-inline:14px 12px;background:rgba(247,234,203,.1);box-shadow:inset 3px 0 0 var(--ocre);border-bottom-color:transparent}
+.pms-admin nav a[aria-current=page] svg:first-child{color:var(--ocre)}
 .pms-admin nav a[aria-current=page] svg:last-child,.pms-admin nav a:hover svg:last-child{opacity:1}
 .pms-admin .account{margin-top:auto;display:grid;gap:11px}
 .pms-admin .account p{margin:0 0 6px;font-family:var(--serif);font-size:24px;color:var(--creme)}
