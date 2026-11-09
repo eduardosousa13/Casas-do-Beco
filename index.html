@@ -3,17 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="/favicon.ico" sizes="48x48" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- ?v=2: o Safari guarda o "sem ícone" de visitas antigas; um endereço novo obriga-o a ir buscar o ícone outra vez. -->
+    <link rel="icon" href="/favicon.ico?v=2" sizes="16x16 32x32 48x48" />
+    <link rel="icon" href="/favicon-32.png?v=2" sizes="32x32" type="image/png" />
+    <link rel="icon" href="/icon-192.png?v=2" sizes="192x192" type="image/png" />
+    <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
+    <link rel="manifest" href="/site.webmanifest" />
     <title>Casas do Beco · Casas de aldeia no Ladoeiro</title>
     <meta name="description" content="Casas de aldeia no Ladoeiro, Idanha-a-Nova, na Beira Baixa. Alojamento local de uma família da terra, entre a planície, as oliveiras e a melancia." />
     <meta name="theme-color" content="#37482f" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Casas do Beco · Ladoeiro" />
     <meta property="og:description" content="Casas de aldeia no Ladoeiro, Beira Baixa." />
-    <meta property="og:image" content="/img/aldeia-m.jpg" />
+    <meta property="og:image" content="https://www.casasdobeco.com/img/aldeia-m.jpg" />
+    <meta property="og:url" content="https://www.casasdobeco.com/" />
+    <meta property="og:locale" content="pt_PT" />
+    <meta property="og:site_name" content="Casas do Beco" />
     <link rel="preload" href="./src/fontes/hanken-latin.woff2" as="font" type="font/woff2" crossorigin fetchpriority="low">
     <link rel="preload" href="./src/fontes/cormorant-latin.woff2" as="font" type="font/woff2" crossorigin fetchpriority="low">
     <link rel="preload" href="./src/fontes/cormorant-italico-latin.woff2" as="font" type="font/woff2" crossorigin fetchpriority="low">
