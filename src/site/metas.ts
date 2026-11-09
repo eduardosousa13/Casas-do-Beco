@@ -4,7 +4,7 @@ export const SITE = 'https://www.casasdobeco.com';
 
 type Meta = { titulo: string; descricao: string };
 const metas: Record<string, Meta> = {
-  '/': { titulo: 'Casas do Beco · Casas de aldeia no Ladoeiro', descricao: 'Casas de aldeia no Ladoeiro, Idanha-a-Nova, na Beira Baixa. Alojamento local de uma família da terra, entre a planície, as oliveiras e a melancia.' },
+  '/': { titulo: 'Casas do Beco · Alojamento local no Ladoeiro', descricao: 'Alojamento local no Ladoeiro, Idanha-a-Nova, na Beira Baixa. Casas de aldeia de uma família da terra, entre a planície, as oliveiras e a melancia.' },
   '/casa': { titulo: 'A casa · Casas do Beco', descricao: 'Fotografias da casa: entrada, cozinha, quartos e casa de banho, numa rua sossegada do Ladoeiro.' },
   '/mapa': { titulo: 'Mapa do Ladoeiro · Casas do Beco', descricao: 'Mapa da aldeia do Ladoeiro com o que há à volta da casa: a Igreja Matriz, a Fonte Grande, o Largo do Cruzeiro, a piscina e o recinto da festa.' },
   '/tradicoes': { titulo: 'Tradições do Ladoeiro · Casas do Beco', descricao: 'A Procissão de Santa Catarina de Sena, o Festival da Melancia e a apanha: as alturas em que vale a pena estar no Ladoeiro.' },
