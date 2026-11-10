@@ -181,9 +181,11 @@ export function FotoPorFazer({ nome, className = '', escuro = false }: { nome: s
 
 // Scroll suave com a roda e o trackpad (no toque fica o nativo do telemóvel). Corre no relógio do GSAP
 // para os ScrollTrigger acompanharem cada fotograma.
+// No toque o Lenis não suaviza nada, mas corria a cada fotograma e voltava a avisar o ScrollTrigger de
+// cada scroll (que já o ouve sozinho); por isso só se liga com rato ou trackpad.
 let lenis: Lenis | null = null;
 export function ligarScrollSuave() {
-  if (semMovimento()) return () => {};
+  if (semMovimento() || !matchMedia('(pointer: fine)').matches) return () => {};
   const l = new Lenis({ lerp: 0.085, wheelMultiplier: 0.9 });
   l.on('scroll', ScrollTrigger.update);
   const tique = (t: number) => l.raf(t * 1000);
