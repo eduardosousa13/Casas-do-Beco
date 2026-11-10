@@ -195,8 +195,10 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
   }, [ligar]);
 
   const zoom = (k: number) => api.current.zoom(k);
+  // Nunca mais alto do que o ecrã: com o telemóvel deitado o "Ver tudo" tem de ficar à vista, porque
+  // arrastar em cima do mapa move o mapa e não a página.
   return (
-    <div className="relative h-dvh min-h-[32rem]">
+    <div className="relative h-dvh min-h-[min(32rem,100dvh)]">
       <div ref={vista} className="absolute inset-0 cursor-grab touch-none overflow-hidden select-none data-[agarra]:cursor-grabbing">
         <div ref={mundo} className="absolute left-0 top-0 origin-top-left" style={{ width: L, height: A }}>
           <Imagem foto={fotos.aldeia} prioridade sizes="1774px" className="pointer-events-none h-full w-full" />
