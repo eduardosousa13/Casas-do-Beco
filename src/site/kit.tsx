@@ -203,8 +203,10 @@ export function prenderScroll(sim: boolean) {
 
 // Ir para um ponto da página (topo, âncora), suave ou de imediato.
 export function irPara(alvo: number | HTMLElement, suave = false) {
-  if (lenis) { lenis.scrollTo(alvo, { immediate: !suave, force: true, duration: suave ? 1.4 : undefined }); return; }
-  const top = typeof alvo === 'number' ? alvo : alvo.getBoundingClientRect().top + scrollY;
+  // Uma âncora respeita a sua margem (scroll-mt-*), para não ficar debaixo do cabeçalho.
+  const top = typeof alvo === 'number' ? alvo
+    : Math.max(0, alvo.getBoundingClientRect().top + scrollY - (parseFloat(getComputedStyle(alvo).scrollMarginTop) || 0));
+  if (lenis) { lenis.scrollTo(top, { immediate: !suave, force: true, duration: suave ? 1.4 : undefined }); return; }
   window.scrollTo({ top, behavior: (suave && !semMovimento() ? 'smooth' : 'instant') as ScrollBehavior });
 }
 
