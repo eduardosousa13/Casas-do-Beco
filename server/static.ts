@@ -3,13 +3,25 @@ import {createReadStream} from 'node:fs';
 import {Readable} from 'node:stream';
 import path from 'node:path';
 const mime:Record<string,string>={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.avif':'image/avif','.webmanifest':'application/manifest+json','.webm':'video/webm','.mp4':'video/mp4','.woff':'font/woff','.woff2':'font/woff2','.ico':'image/x-icon','.txt':'text/plain; charset=utf-8','.xml':'application/xml'};
+export const compressed=/\.(js|css|svg|json|xml|txt|webmanifest)$/;
 export async function staticResponse(request:Request,root:string):Promise<Response|null>{
  let pathname:string;try{pathname=decodeURIComponent(new URL(request.url).pathname);}catch{return new Response('Pedido inválido',{status:400});}
  if(pathname.split('/').some(p=>p.startsWith('.'))||pathname.includes('\\')||pathname.includes('\0')||pathname==='/admin.html')return new Response('Página não encontrada',{status:404});
  const file=path.resolve(root,'.'+pathname),base=path.resolve(root)+path.sep;if(!file.startsWith(base))return new Response('Página não encontrada',{status:404});
  let size:number,modified:Date;try{const resolved=await realpath(file),realBase=(await realpath(root))+path.sep;if(!resolved.startsWith(realBase))return new Response('Página não encontrada',{status:404});const info=await stat(file);if(!info.isFile())return null;size=info.size;modified=info.mtime;}catch{return null;}
+ // Text files compressed once at build time (scripts/build.mjs) go out as they are, without compressing on every request.
+ let source=file,encoding='';
+ if(compressed.test(file)&&request.headers.has('accept-encoding')){
+  const accepts=request.headers.get('accept-encoding')!;
+  for(const [name,ext] of [['br','.br'],['gzip','.gz']] as const){
+   if(!new RegExp(`\\b${name}\\b`).test(accepts))continue;
+   try{const info=await stat(file+ext);if(info.isFile()){source=file+ext;encoding=name;size=info.size;break;}}catch{}
+  }
+ }
  const extension=path.extname(file),headers=new Headers({'Content-Type':mime[extension]||'application/octet-stream','X-Content-Type-Options':'nosniff','Cache-Control':/^\/assets\/.+-[\w-]{6,}\./.test(pathname)?'public, max-age=31536000, immutable':pathname.startsWith('/img/')?'public, max-age=86400, stale-while-revalidate=604800':'public, max-age=0, must-revalidate','Last-Modified':modified.toUTCString()});
- const etag=`W/"${size}-${modified.getTime()}"`;headers.set('ETag',etag);
+ if(compressed.test(file))headers.set('Vary','Accept-Encoding');
+ if(encoding)headers.set('Content-Encoding',encoding);
+ const etag=`W/"${size}-${modified.getTime()}${encoding?'-'+encoding:''}"`;headers.set('ETag',etag);
  if(request.headers.get('if-none-match')===etag)return new Response(null,{status:304,headers});
  let start=0,end=size-1,status=200;
  if(['.webm','.mp4'].includes(extension)){
@@ -23,6 +35,6 @@ export async function staticResponse(request:Request,root:string):Promise<Respon
  }
  headers.set('Content-Length',String(Math.max(0,end-start+1)));
  if(request.method==='HEAD'||size===0)return new Response(null,{status,headers});
- const stream=Readable.toWeb(createReadStream(file,{start,end}));return new Response(stream as ReadableStream<Uint8Array>,{status,headers});
+ const stream=Readable.toWeb(createReadStream(source,{start,end}));return new Response(stream as ReadableStream<Uint8Array>,{status,headers});
 }
 export {readFile};
