@@ -1,3 +1,4 @@
+@import "../fontes/fontes.css";
 /* Área de gestão com a linguagem do site: Cormorant nos títulos, Hanken no texto, beges e verdes,
    botões retangulares em maiúsculas espaçadas. As cores são as mesmas do src/index.css. */
 .pms-admin{margin:0;background:var(--creme);color:var(--terra);font:15px/1.65 'Hanken Grotesk',system-ui,sans-serif;color-scheme:light;
