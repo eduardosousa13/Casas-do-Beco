@@ -111,7 +111,10 @@ function Menu({ aberto, fechar }: { aberto: boolean; fechar: () => void }) {
     const d = ref.current;
     if (!d) return;
     if (aberto && !d.open) {
+      // O foco fica no próprio menu e não no botão Fechar, para não aparecer o contorno ao abrir com o rato.
+      // Quem navega com o teclado vê o contorno no primeiro Tab.
       d.showModal();
+      d.focus();
       prenderScroll(true);
       if (!semMovimento()) {
         gsap.fromTo(d, { clipPath: 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.9, ease: 'expo.inOut' });
@@ -126,7 +129,7 @@ function Menu({ aberto, fechar }: { aberto: boolean; fechar: () => void }) {
 
   return (
     <dialog ref={ref} aria-label="Menu" data-lenis-prevent onCancel={e => { e.preventDefault(); fechar(); }}
-      className="m-0 h-dvh max-h-none w-full max-w-none bg-musgo p-0 text-creme backdrop:bg-transparent">
+      tabIndex={-1} className="m-0 h-dvh max-h-none w-full max-w-none bg-musgo p-0 text-creme outline-none backdrop:bg-transparent">
       <div className="contentor flex h-full flex-col">
         <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center">
           <button type="button" onClick={fechar} className="flex items-center gap-3 justify-self-start py-3 text-[0.95rem] font-medium">
