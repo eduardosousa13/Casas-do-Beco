@@ -102,8 +102,11 @@
 .pms-admin th,.pms-admin td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:15px;overflow-wrap:anywhere}
 .pms-admin th{font-weight:500;color:var(--terra-suave)}
 .pms-admin .calendar-table{min-width:1450px;table-layout:fixed;background:var(--linho)}
-.pms-admin .calendar-table caption{text-align:left;padding:20px;font:500 28px var(--serif);color:var(--terra)}
-.pms-admin .calendar-table caption::first-letter{text-transform:uppercase}
+/* O mês fica fora da zona com scroll, por isso não foge quando se arrasta o calendário para o lado. */
+.pms-admin .calendar-month{margin:0;padding:20px;font:500 28px var(--serif);color:var(--terra);background:var(--linho);border:1px solid var(--line);border-bottom:0}
+.pms-admin .calendar-month::first-letter{text-transform:uppercase}
+.pms-admin .calendar-month+.calendar-scroll{border-top:0}
+.pms-admin .so-leitor{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .pms-admin .calendar-table th:first-child{width:200px;position:sticky;left:0;background:var(--creme);z-index:1}
 .pms-admin .calendar-table tbody th small{display:block;color:var(--terra-suave)}
 .pms-admin .calendar-table th,.pms-admin .calendar-table td{padding:7px 2px;border-right:1px solid var(--line)}
@@ -173,4 +176,4 @@ html.admin-menu-open{overflow:hidden}
 .day-agenda{display:none}
 .day-agenda label{max-width:220px}
 @media(max-width:760px){.day-agenda{display:block}.day-agenda .booking-row{width:100%}}
-.pms-admin .stat strong,.pms-admin .booking-row strong,.pms-admin .calendar-table caption,.pms-admin h1,.pms-admin h2,.pms-admin h3{font-variant-numeric:lining-nums tabular-nums}
+.pms-admin .stat strong,.pms-admin .booking-row strong,.pms-admin .calendar-month,.pms-admin h1,.pms-admin h2,.pms-admin h3{font-variant-numeric:lining-nums tabular-nums}
