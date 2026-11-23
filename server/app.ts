@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import { json } from '../pms/http';
 import { AccessError,staffSession } from '../pms/auth';
 import type { RouteHandler } from './types';
@@ -26,7 +27,9 @@ export const legacyRedirects:Record<string,string>={'/onde-estamos':'/mapa','/co
 export const adminPages=new Set(['','login','security','history','sessions','calendar','reservations','finance','recover','reset-password']);
 export const protectedPath=(path:string)=>path==='/admin'||path.startsWith('/admin/')||path.startsWith('/api/admin/')||path.startsWith('/api/auth/');
 export function securityHeaders(path:string){
- const h=new Headers({'X-Content-Type-Options':'nosniff'});
+ // HSTS: browsers that saw the site once only use HTTPS for a year (ignored on plain-HTTP localhost).
+ const h=new Headers({'X-Content-Type-Options':'nosniff','Strict-Transport-Security':'max-age=31536000','Referrer-Policy':'strict-origin-when-cross-origin',
+  'Permissions-Policy':'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()'});
  if(protectedPath(path)){
   h.set('Cache-Control','no-store');h.set('X-Robots-Tag','noindex, nofollow');h.set('Referrer-Policy','no-referrer');
   h.set('Content-Security-Policy',"frame-ancestors 'none'; object-src 'none'; base-uri 'self'");
@@ -56,5 +59,17 @@ export async function adminBootstrap(request:Request):Promise<Response|{page:str
   }
  }
  return {page,userName,factorEnabled};
+}
+// Content-Security-Policy for the HTML pages. Inline scripts are allowed only by the hash of their exact text,
+// so each page lists the scripts it really carries (the opening animation is left out of inner pages).
+// Styles keep 'unsafe-inline': the opening's <style> block and GSAP's inline style attributes need it.
+const inlineScripts=/<script(?![^>]*\bsrc=)(?![^>]*type="application\/(?:ld\+)?json")[^>]*>([\s\S]*?)<\/script>/g;
+const sha256=(text:string)=>`'sha256-${createHash('sha256').update(text,'utf8').digest('base64')}'`;
+export function pageCsp(html:string,admin=false){
+ const hashes=[...html.matchAll(inlineScripts)].map(m=>sha256(m[1]));
+ return ["default-src 'self'",`script-src 'self'${hashes.length?' '+hashes.join(' '):''}`,
+  admin?"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com":"style-src 'self' 'unsafe-inline'",
+  admin?"font-src 'self' https://fonts.gstatic.com":"font-src 'self'",
+  "img-src 'self' data: blob:","connect-src 'self'","frame-ancestors 'none'","object-src 'none'","base-uri 'self'","form-action 'self'"].join('; ');
 }
 export const bootstrapJson=(value:unknown)=>JSON.stringify(value).replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');

@@ -29,7 +29,7 @@ npm start
 
 Build gera `dist/client/` e `dist/server/index.mjs`. O servidor usa `PORT` do Railway, escuta em `0.0.0.0` por defeito e serve imagens/vídeos existentes nos mesmos endereços. `npm run preview` executa a compilação; `npm run start:local` também carrega explicitamente `.env.local`.
 
-Configure `PUBLIC_SITE_URL=https://casasdobeco.com`, `DATABASE_URL` e segredos no ambiente protegido do alojamento. Só no serviço atrás do HTTP ingress Railway, configure `TRUST_RAILWAY_PROXY=true`: utiliza o `X-Real-IP` fornecido pelo ingress. Por defeito, ignora cabeçalhos de IP enviados pelo cliente e usa o socket. Uma futura migração para outro proxy exige rever esse contrato.
+Configure `PUBLIC_SITE_URL=https://www.casasdobeco.com` (com `www`: é o endereço servido pelo Railway; o domínio sem `www` é só um redirecionamento 301 do Squarespace e, usado aqui, causa um ciclo de redirecionamentos e falha a autenticação), `DATABASE_URL` e segredos no ambiente protegido do alojamento. Só no serviço atrás do HTTP ingress Railway, configure `TRUST_RAILWAY_PROXY=true`: utiliza o `X-Real-IP` fornecido pelo ingress. Por defeito, ignora cabeçalhos de IP enviados pelo cliente e usa o socket. Uma futura migração para outro proxy exige rever esse contrato.
 
 O ficheiro de ambiente é ignorado pelo Git. Nunca incluir credenciais em `VITE_*`: essas variáveis podem ir para o browser. Não publicar chaves, backups, dados de hóspedes ou segredos de segundo fator.
 

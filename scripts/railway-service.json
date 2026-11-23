@@ -1,5 +1,5 @@
 {
-  "builder": "RAILPACK",
+  "builder": "DOCKERFILE",
   "dockerfilePath": "Dockerfile",
   "preDeployCommand": ["node dist/pms/migrate.mjs"],
   "preDeployTimeoutSeconds": 120,
