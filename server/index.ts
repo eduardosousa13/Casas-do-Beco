@@ -5,7 +5,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import type {ViteDevServer} from 'vite';
 import {webRequest,clientIp,sendResponse} from './transport';
-import {handleApi,adminBootstrap,publicPages,legacyRedirects,securityHeaders,bootstrapJson} from './app';
+import {handleApi,adminBootstrap,publicPages,legacyRedirects,securityHeaders,bootstrapJson,pageCsp} from './app';
 import {staticResponse} from './static';
 import {database} from '../pms/db';
 import {runWorker} from '../pms/worker';
@@ -17,6 +17,8 @@ const argumentPort=process.argv.indexOf('--port'),port=Number(argumentPort>=0?pr
 if(!Number.isInteger(port)||port<1||port>65535)throw Error('Invalid server port');
 let vite:ViteDevServer|undefined;
 const htmlCache=new Map<string,string>();
+// HTML response with its Content-Security-Policy (not in --dev: Vite injects its own inline scripts there).
+const page=(body:string,init:ResponseInit={},admin=false)=>{const headers=new Headers(init.headers);headers.set('Content-Type','text/html; charset=utf-8');if(!dev)headers.set('Content-Security-Policy',pageCsp(body,admin));return new Response(body,{...init,headers});};
 async function html(file:string,url:string){
  if(dev)return vite!.transformIndexHtml(url,await readFile(path.join(root,file),'utf8'));
  if(!htmlCache.has(file))htmlCache.set(file,await readFile(path.join(clientRoot,file),'utf8'));
@@ -33,9 +35,9 @@ const server=createServer({requestTimeout:15000,headersTimeout:10000},async(req,
   const request=await webRequest(req);
   if(pathname==='/admin'||pathname.startsWith('/admin/')){
    const boot=await adminBootstrap(request);if(boot instanceof Response){await sendResponse(req,res,boot);return;}
-   await sendResponse(req,res,new Response((await html('admin.html',req.url||'/admin')).replace('__ADMIN_BOOTSTRAP__',bootstrapJson(boot)),{headers:{'Content-Type':'text/html; charset=utf-8'}}));return;
+   await sendResponse(req,res,page((await html('admin.html',req.url||'/admin')).replace('__ADMIN_BOOTSTRAP__',bootstrapJson(boot)),{},true));return;
   }
-  if(publicPages.has(pathname)){await sendResponse(req,res,new Response(comMeta(await html('index.html',req.url||'/'),pathname),{headers:{'Content-Type':'text/html; charset=utf-8'}}));return;}
+  if(publicPages.has(pathname)){await sendResponse(req,res,page(comMeta(await html('index.html',req.url||'/'),pathname)));return;}
   if(legacyRedirects[pathname]){res.writeHead(301,{Location:legacyRedirects[pathname]});res.end();return;}
   if(pathname==='/reserva/resultado'||pathname==='/reserva/cancelada'){
    const name=pathname.endsWith('resultado')?'resultado':'cancelada';
@@ -45,7 +47,7 @@ const server=createServer({requestTimeout:15000,headersTimeout:10000},async(req,
   // Never expose the admin template directly, bypassing its server-side gate.
   if(pathname==='/admin.html'){res.writeHead(404);res.end('Página não encontrada.');return;}
   // Unknown page addresses get the site shell with a 404 status, so the visitor sees the designed 404 page.
-  const notFound=async()=>/\.[a-z0-9]+$/i.test(pathname)?new Response('Página não encontrada.',{status:404}):new Response(comMeta(await html('index.html',req.url||'/'),pathname),{status:404,headers:{'Content-Type':'text/html; charset=utf-8'}});
+  const notFound=async()=>/\.[a-z0-9]+$/i.test(pathname)?new Response('Página não encontrada.',{status:404}):page(comMeta(await html('index.html',req.url||'/'),pathname),{status:404});
   if(dev){vite!.middlewares(req,res,()=>{if(!res.writableEnded)void notFound().then(r=>sendResponse(req,res,r));});return;}
   await sendResponse(req,res,await staticResponse(request,clientRoot)||await notFound());
  }catch(error){

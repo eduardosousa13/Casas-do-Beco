@@ -6,7 +6,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {request as httpRequest} from 'node:http';
 import {transport,maxRequestBytes} from '../server/transport';
-import {handleApi,bootstrapJson,securityHeaders} from '../server/app';
+import {handleApi,bootstrapJson,securityHeaders,pageCsp} from '../server/app';
 import {staticResponse} from '../server/static';
 import {verifyStripeEvent} from '../pms/webhook';
 import Stripe from 'stripe';
@@ -18,3 +18,13 @@ test('client-supplied forwarding headers do not override the local socket IP',as
 test('API routing keeps methods, retired endpoints and security headers separate from public HTML',async()=>{const req=(path:string,method='GET',origin?:string)=>new Request('http://localhost:3004'+path,{method,headers:origin?{origin}:undefined});assert.equal((await handleApi(req('/api/unknown'),'127.0.0.1')).status,404);const method=await handleApi(req('/api/pms/quote'),'127.0.0.1');assert.equal(method.status,405);assert.equal(method.headers.get('allow'),'POST');assert.equal((await handleApi(req('/api/admin/configuration'),'127.0.0.1')).status,410);assert.equal((await handleApi(req('/api/pms/stripe-webhook','POST'),'127.0.0.1')).status,400);assert.equal(securityHeaders('/admin').get('cache-control'),'no-store');assert.equal(securityHeaders('/api/auth/sign-in/email').get('referrer-policy'),'no-referrer');});
 test('admin bootstrap cannot inject executable HTML from account names',()=>{const value=bootstrapJson({name:'</script><script>alert(1)</script>\u2028'});assert.ok(!value.includes('<'));assert.deepEqual(JSON.parse(value),{name:'</script><script>alert(1)</script>\u2028'});});
 test('static files preserve video ranges, cache validation and reject private templates or escaped files',async()=>{const root=await mkdtemp(path.join(tmpdir(),'casas-static-test-'));try{await writeFile(path.join(root,'interior.webm'),'0123456789');await writeFile(path.join(root,'.env'),'test-only');await writeFile(path.join(root,'admin.html'),'private-template');await symlink('/etc/hosts',path.join(root,'outside.txt'));const request=(pathname:string,headers?:HeadersInit,method='GET')=>new Request('http://localhost'+pathname,{headers,method});const range=await staticResponse(request('/interior.webm',{range:'bytes=2-5'}),root);assert.equal(range!.status,206);assert.equal(range!.headers.get('content-range'),'bytes 2-5/10');assert.equal(await range!.text(),'2345');assert.equal(await(await staticResponse(request('/interior.webm',{range:'bytes=-3'}),root))!.text(),'789');assert.equal((await staticResponse(request('/interior.webm',{range:'bytes=99-100'}),root))!.status,416);const head=await staticResponse(request('/interior.webm',undefined,'HEAD'),root);assert.equal(head!.headers.get('content-length'),'10');assert.equal(await head!.text(),'');assert.equal((await staticResponse(request('/interior.webm',{'if-none-match':head!.headers.get('etag')!}),root))!.status,304);for(const p of ['/.env','/admin.html','/outside.txt','/src/%2e%2e%2f.env'])assert.equal((await staticResponse(request(p),root))!.status,404);}finally{await rm(root,{recursive:true,force:true});}});
+test('HTML pages allow only their own inline scripts and every response asks for HTTPS',()=>{
+ const html='<script>a()</script><script type="application/ld+json">{"x":1}</script><script type="module" src="/m.js"></script>';
+ const csp=pageCsp(html);
+ assert.match(csp,/script-src 'self' 'sha256-[A-Za-z0-9+/=]+'$|script-src 'self' 'sha256-[A-Za-z0-9+/=]+';/);
+ assert.equal(csp.match(/sha256-/g)?.length,1);
+ assert.match(csp,/frame-ancestors 'none'/);assert.doesNotMatch(csp,/unsafe-eval|fonts\.g/);
+ assert.match(pageCsp('',true),/fonts\.gstatic\.com/);
+ assert.equal(securityHeaders('/').get('strict-transport-security'),'max-age=31536000');
+ assert.equal(securityHeaders('/admin').get('referrer-policy'),'no-referrer');
+});
