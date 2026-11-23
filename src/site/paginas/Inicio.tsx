@@ -4,7 +4,7 @@ import { useTopo } from '../Estrutura';
 import { FaixaComoChegar } from '../ComoChegar';
 import { BrasaoDesenhado, PinoCasa } from '../Marca';
 import { Capela, Linha, Estandarte, Melancia } from '../desenhos';
-import { Acende, aposAbertura, GRANDE, gsap, Imagem, Ligacao, Linhas, Revela, semMovimento, useAnimacao } from '../kit';
+import { Acende, aposAbertura, GRANDE, gsap, ScrollTrigger, TELEFONE, Imagem, Ligacao, Linhas, Revela, semMovimento, useAnimacao } from '../kit';
 import { fotos, pontos } from '../dados';
 import { cheio, TRANSFORMA, VISTA } from '../logotipo';
 
@@ -58,8 +58,20 @@ function Capa() {
     });
 
     const mm = gsap.matchMedia();
-    mm.add({ grande: GRANDE, pequeno: '(max-width: 1023px), (pointer: coarse)' }, ctx => {
-      const grande = ctx.conditions?.grande;
+    mm.add({ grande: GRANDE, telefone: TELEFONE, todos: 'all' }, ctx => {
+      const { grande, telefone } = ctx.conditions!;
+
+      // Telemóvel: nada preso ao dedo. A hero tem a altura do ecrã e sobe com a página, o logótipo com ela;
+      // só quando ele sai inteiro do ecrã (o cabeçalho é transparente por cima da pintura) é que o emblema do topo aparece, com um
+      // fade curto (corre sozinho, por isso um scroll rápido ou lento vê o mesmo, e nunca há dois emblemas).
+      if (telefone) {
+        const topo = document.querySelector('[data-emblema-topo]');
+        gsap.set(topo, { opacity: 0 });
+        const mostrar = (v: boolean) => gsap.to(topo, { opacity: v ? 1 : 0, duration: v ? 0.45 : 0.25, ease: 'power2.out', overwrite: true });
+        ScrollTrigger.create({ trigger: q('[data-logo]')[0], start: 'bottom top', onEnter: () => mostrar(true), onLeaveBack: () => mostrar(false) });
+        return;
+      }
+
       const scrub = grande ? 0.6 : true;
 
       // A pintura aproxima-se e escurece durante toda a hero.
@@ -86,9 +98,9 @@ function Capa() {
   }, { scope: ref });
 
   return (
-    <section ref={ref} className="relative h-[180dvh]" aria-label="Início">
+    <section ref={ref} data-capa className="relative h-[180dvh] telefone:h-svh" aria-label="Início">
       <h1 className="sr-only">Casas do Beco, alojamento local no Ladoeiro, Idanha-a-Nova</h1>
-      <div className="sticky top-0 h-dvh overflow-hidden bg-creme text-cal">
+      <div className="sticky top-0 h-dvh overflow-hidden bg-creme text-cal telefone:relative telefone:h-full">
         <div data-quadro className="absolute inset-0 overflow-hidden bg-noite will-change-transform">
           <div data-fundo className="absolute inset-0 will-change-transform">
             <Imagem foto={fotos.hero} prioridade sizes="100vw" className="h-full w-full object-cover" />

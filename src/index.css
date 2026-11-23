@@ -1,6 +1,11 @@
 @import "./fontes/fontes.css";
 @import "tailwindcss";
 
+/* Telemóvel (ao alto ou deitado): a hero corre em fluxo normal, sem animação presa ao scroll. Igual a TELEFONE em kit.tsx. */
+@custom-variant telefone {
+  @media (max-width: 767px), (max-height: 500px) { @slot; }
+}
+
 /* Paleta tirada da Mont Rural e da própria aldeia: cal e palha nos fundos, verde-oliveira nos campos escuros,
    ocre da terra seca e telha só para marcar sítios. */
 @theme {

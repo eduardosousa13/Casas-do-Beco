@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { ArrowUpRight, X } from 'lucide-react';
 import { Emblema, EmblemaDesenhado } from './Marca';
 import { Linha } from './desenhos';
-import { GRANDE, gsap, Imagem, irPara, ligarScrollSuave, paraOTopo, prenderScroll, ScrollTrigger, semMovimento } from './kit';
+import { GRANDE, TELEFONE, gsap, Imagem, irPara, ligarScrollSuave, paraOTopo, prenderScroll, ScrollTrigger, semMovimento } from './kit';
 import { contactos, paginas, telefoneLink } from './dados';
 import InfoLegal, { type Separador } from './InfoLegal';
 import { aplicarMeta } from './metas';
@@ -86,9 +86,14 @@ function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
     // no computador a pintura encolhe logo para um quadro sobre o creme, por isso o fundo e a letra escura entram cedo.
     // A posição vem do ScrollTrigger, que já a leu neste scroll: ler scrollY aqui, logo depois de as animações
     // escreverem estilos, obrigava o navegador a refazer o layout em cada evento de scroll.
-    const quadro = () => inicio && !semMovimento() && matchMedia(GRANDE).matches;
+    // No telemóvel a hero sobe com a página: o fundo entra quando ela acaba de passar por baixo do cabeçalho.
+    const quadro = () => inicio && !semMovimento() && matchMedia(GRANDE).matches && !matchMedia(TELEFONE).matches;
+    const telefone = () => inicio && matchMedia(TELEFONE).matches;
     let limiar = 0;
-    const medir = () => { limiar = inicio ? innerHeight * (quadro() ? 0.08 : 0.8) : 40; };
+    const medir = () => {
+      const capa = document.querySelector<HTMLElement>('[data-capa]');
+      limiar = !inicio ? 40 : telefone() && capa ? capa.offsetHeight - 64 : innerHeight * (quadro() ? 0.08 : 0.8);
+    };
     medir();
     setDesceu(scrollY > limiar);
     const st = ScrollTrigger.create({ start: 0, end: 'max', onRefresh: self => { medir(); setDesceu(self.scroll() > limiar); }, onUpdate: self => setDesceu(self.scroll() > limiar) });

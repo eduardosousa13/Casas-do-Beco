@@ -21,6 +21,9 @@ export const semMovimento = () => estatico || matchMedia('(prefers-reduced-motio
 
 // Computador com rato: só aqui há secções presas e scroll horizontal. No telemóvel tudo corre em fluxo normal.
 export const GRANDE = '(min-width: 1024px) and (pointer: fine)';
+// Telemóvel, ao alto ou deitado: a hero não fica presa e o logótipo sobe com a pintura (scroll nativo, sem
+// animação ligada ao dedo). Igual à variante telefone: em index.css.
+export const TELEFONE = '(max-width: 767px), (max-height: 500px)';
 export function useGrande() {
   const [g, setG] = useState(() => matchMedia(GRANDE).matches && !semMovimento());
   useEffect(() => {
