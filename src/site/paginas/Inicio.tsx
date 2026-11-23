@@ -61,14 +61,23 @@ function Capa() {
     mm.add({ grande: GRANDE, telefone: TELEFONE, todos: 'all' }, ctx => {
       const { grande, telefone } = ctx.conditions!;
 
-      // Telemóvel: nada preso ao dedo. A hero tem a altura do ecrã e sobe com a página, o logótipo com ela;
-      // só quando ele sai inteiro do ecrã (o cabeçalho é transparente por cima da pintura) é que o emblema do topo aparece, com um
-      // fade curto (corre sozinho, por isso um scroll rápido ou lento vê o mesmo, e nunca há dois emblemas).
+      // Telemóvel: nada preso ao dedo. A hero tem a altura do ecrã e sobe com a página, o logótipo com ela,
+      // a desaparecer: a opacidade segue o scroll e chega a zero quando o topo do logótipo está a 16px da barra
+      // do cabeçalho (64px), por isso nunca passa por baixo do Menu nem do Reservar. Só opacidade: o compositor
+      // faz tudo. Quando o logótipo acaba de desaparecer, o emblema do topo entra com um fade curto (corre
+      // sozinho, por isso um scroll rápido ou lento vê o mesmo, e nunca há dois emblemas).
       if (telefone) {
+        const logo = q('[data-logo]')[0] as HTMLElement;
         const topo = document.querySelector('[data-emblema-topo]');
         gsap.set(topo, { opacity: 0 });
         const mostrar = (v: boolean) => gsap.to(topo, { opacity: v ? 1 : 0, duration: v ? 0.45 : 0.25, ease: 'power2.out', overwrite: true });
-        ScrollTrigger.create({ trigger: q('[data-logo]')[0], start: 'bottom top', onEnter: () => mostrar(true), onLeaveBack: () => mostrar(false) });
+        // Distância de scroll até o topo do logótipo chegar aos 80px (medida com a página no topo: a hero começa em 0).
+        const percurso = () => Math.max(1, logo.getBoundingClientRect().top + scrollY - 80);
+        gsap.fromTo(logo, { opacity: 1 }, {
+          opacity: 0, ease: 'none',
+          scrollTrigger: { trigger: el, start: 'top top', end: () => `+=${percurso()}`, scrub: true, invalidateOnRefresh: true,
+            onLeave: () => mostrar(true), onEnterBack: () => mostrar(false) },
+        });
         return;
       }
 
