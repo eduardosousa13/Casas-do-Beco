@@ -172,12 +172,11 @@ export function Ligacao({ para, children, claro = false, principal = false, clas
   );
 }
 
-// Lugar guardado para uma fotografia que ainda não existe.
+// Lugar guardado para uma fotografia que ainda não existe: só o nome, sem aviso de que falta.
 export function FotoPorFazer({ nome, className = '', escuro = false }: { nome: string; className?: string; escuro?: boolean }) {
   return (
     <div className={`flex flex-col items-center justify-center gap-2 rounded-[2px] border border-dashed p-6 text-center ${escuro ? 'border-creme/40 text-creme' : 'border-terra/35 text-terra'} ${className}`}>
       <span className="titulo t-pequena"><em>{nome}</em></span>
-      <span className="text-sm opacity-75">Fotografia por fazer</span>
     </div>
   );
 }
