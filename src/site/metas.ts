@@ -26,6 +26,8 @@ const escapar = (t: string) => t.replace(/&/g, '&amp;').replace(/"/g, '&quot;').
 export function comMeta(html: string, pathname: string) {
   const m = metaDe(pathname);
   const t = escapar(m.titulo), d = escapar(m.descricao);
+  // A abertura (logótipo a desenhar-se, ~30 KB de SVG) só corre na página inicial: nas outras não se envia.
+  if (pathname !== '/') html = html.replace(/<!--abertura:[\s\S]*?<!--\/abertura-->/, '');
   return html
     .replace(/<title>[^<]*<\/title>/, `<title>${t}</title>`)
     .replace(/(<meta name="description" content=")[^"]*/, `$1${d}`)
