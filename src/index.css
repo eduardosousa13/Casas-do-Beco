@@ -99,6 +99,12 @@
   .botao:hover svg { transform: translateX(4px); }
   .botao-claro { --b-cor: var(--color-creme); --b-fundo: var(--color-noite); }
   .botao-pequeno { padding: 0.8rem 1.15rem; font-size: 0.72rem; }
+  /* Mapa com o painel aberto (computador): o Reservar do cabeçalho fica por cima do bege e enche-se de verde. */
+  @media (min-width: 48rem) {
+    html[data-mapa-aberto] header .botao-claro { --b-cor: var(--color-musgo); --b-fundo: var(--color-creme); color: var(--b-fundo); }
+    html[data-mapa-aberto] header .botao-claro::before { transform: scaleX(1); }
+    html[data-mapa-aberto] header .botao-claro:hover, html[data-mapa-aberto] header .botao-claro:focus-visible { --b-cor: var(--color-noite); }
+  }
   /* Cheio (formulários, escolha feita): começa preenchido e, ao passar, recolhe para a direita. */
   .botao-cheio { color: var(--b-fundo); }
   .botao-cheio::before { transform: scaleX(1); transform-origin: right; }

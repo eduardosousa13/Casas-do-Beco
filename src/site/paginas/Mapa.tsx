@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowDown, Minus, Plus, X } from 'lucide-react';
 import { useTopo } from '../Estrutura';
 import { PinoCasa } from '../Logo';
@@ -10,6 +10,10 @@ const L = 1774, A = 887;
 // Zoom em múltiplos do mínimo (a aldeia inteira a cobrir o ecrã): um ponto aproxima pouco e o máximo fica
 // abaixo do ponto em que a fotografia começa a desfocar.
 const ZOOM_PONTO = 1.35, ZOOM_MAX = 1.6;
+// Abrir e fechar um ponto: o painel e a câmara usam a mesma duração e a mesma curva, a começar no mesmo
+// fotograma. Assim o mapa desliza logo enquanto o painel entra, e a parte da câmara que passa além da
+// fotografia (folga) fica sempre escondida por baixo do painel, também a fechar.
+const VIAGEM = 1.2, CURVA = 'power3.out';
 
 type Camara = { ir: (p: Ponto) => void; afastar: () => void };
 
@@ -20,12 +24,18 @@ export default function Mapa() {
   const escolher = useCallback((p: Ponto) => { setAtivo(p); camara.current.ir(p); }, []);
   const fechar = useCallback(() => { setAtivo(null); camara.current.afastar(); }, []);
   const ligar = useCallback((c: Camara) => { camara.current = c; }, []);
+  // Com o painel aberto o botão Reservar do cabeçalho fica por cima do bege e passa a verde (index.css).
+  useEffect(() => {
+    const html = document.documentElement;
+    if (ativo) html.dataset.mapaAberto = ''; else delete html.dataset.mapaAberto;
+    return () => { delete html.dataset.mapaAberto; };
+  }, [ativo]);
 
   return (
     <>
       <section className="relative overflow-hidden bg-noite text-creme" aria-label="Mapa interativo do Ladoeiro">
         <Visor ativo={ativo} escolher={escolher} ligar={ligar} />
-        <div className={`pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-noite/80 to-transparent pb-24 pt-24 transition-opacity duration-500 lg:pt-28 ${ativo ? 'max-md:opacity-0' : ''}`}>
+        <div className={`pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-noite/80 to-transparent pb-24 pt-24 transition-opacity duration-500 lg:pt-28 ${ativo ? 'telefone:opacity-0' : ''}`}>
           <div className="contentor">
             <Linhas as="h1" imediato className="titulo t-grande max-w-[14ch]">Uma aldeia <em>para descobrir.</em></Linhas>
           </div>
@@ -109,18 +119,18 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
       const s = Math.max(cam.s, minS() * ZOOM_PONTO);
       if (W() >= 768) {
         const cartao = v.closest('section')?.querySelector('aside');
-        const tapado = (cartao?.offsetWidth ?? 352) + 48;
-        voar(p.x + Math.min(200, W() * 0.15) / s, p.y, s, 1.6, 'power3.inOut', 0, tapado);
+        const tapado = cartao?.offsetWidth ?? 384;
+        voar(p.x + tapado / 2 / s, p.y, s, VIAGEM, CURVA, 0, tapado);
         return;
       }
       requestAnimationFrame(() => {
         const cartao = v.closest('section')?.querySelector('aside');
-        const tapado = (cartao?.getBoundingClientRect().height ?? H() * 0.5) + 16;
+        const tapado = cartao?.offsetHeight ?? H() * 0.5;
         const alvoY = (64 + H() - tapado) / 2;
-        voar(p.x, p.y + (H() / 2 - alvoY) / s, s, 1.6, 'power3.inOut', tapado, 0);
+        voar(p.x, p.y + (H() / 2 - alvoY) / s, s, VIAGEM, CURVA, tapado, 0);
       });
     };
-    const afastar = () => { afastado = true; voar(cam.cx, cam.cy, minS(), 1.4, 'power3.inOut', 0, 0); };
+    const afastar = () => { afastado = true; voar(cam.cx, cam.cy, minS(), VIAGEM, CURVA, 0, 0); };
     ligar({ ir, afastar });
     api.current.zoom = k => {
       afastado = false;
@@ -220,9 +230,11 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
         </div>
       </div>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-noite/70 to-transparent" />
-      <div className="absolute bottom-6 right-4 flex flex-col gap-2 sm:right-8">
-        <button type="button" onClick={() => zoom(1.35)} aria-label="Aproximar" className="grid size-11 place-items-center border border-musgo/20 bg-creme text-musgo hover:bg-linho"><Plus size={20} aria-hidden /></button>
-        <button type="button" onClick={() => zoom(1 / 1.35)} aria-label="Afastar" className="grid size-11 place-items-center border border-musgo/20 bg-creme text-musgo hover:bg-linho"><Minus size={20} aria-hidden /></button>
+      {/* No computador ficam por cima do painel bege e passam a verde; no telemóvel o painel tapa-os. Com o
+          telemóvel deitado (pouca altura) tapavam a fotografia do painel: aí deslizam para o lado do mapa. */}
+      <div className={`absolute bottom-6 right-4 flex flex-col gap-2 transition-[right] duration-[1200ms] ease-[cubic-bezier(0.215,0.61,0.355,1)] sm:right-8 md:z-20 ${ativo ? '[@media(min-width:768px)_and_(max-height:500px)]:right-[25rem]' : ''}`}>
+        <button type="button" onClick={() => zoom(1.35)} aria-label="Aproximar" className={`grid size-11 place-items-center border transition-colors duration-700 ${ativo ? 'border-musgo bg-musgo text-creme hover:bg-noite' : 'border-musgo/20 bg-creme text-musgo hover:bg-linho'}`}><Plus size={20} aria-hidden /></button>
+        <button type="button" onClick={() => zoom(1 / 1.35)} aria-label="Afastar" className={`grid size-11 place-items-center border transition-colors duration-700 ${ativo ? 'border-musgo bg-musgo text-creme hover:bg-noite' : 'border-musgo/20 bg-creme text-musgo hover:bg-linho'}`}><Minus size={20} aria-hidden /></button>
       </div>
     </div>
   );
@@ -261,21 +273,34 @@ function VerTudo({ escondido }: { escondido: boolean }) {
   );
 }
 
+// Painel bege de alto a baixo do lado direito (computador) ou colado ao fundo (telemóvel): por baixo dele a
+// câmara pode passar além da fotografia sem se ver o fundo verde. A entrada é do GSAP (--p de 0 a 1), com a
+// mesma duração e curva da câmara. Desliza exatamente a sua largura (ou altura), tal como a folga da câmara,
+// e a sombra apaga-se com ele, para nada ficar à vista quando está fechado.
 function Painel({ ponto, fechar }: { ponto: Ponto | null; fechar: () => void }) {
   const [mostrado, setMostrado] = useState<Ponto | null>(ponto);
-  // Ao fechar, o cartão continua a mostrar o último ponto enquanto desliza para fora.
+  const caixa = useRef<HTMLElement>(null);
+  // Ao fechar, o painel continua a mostrar o último ponto enquanto desliza para fora.
   useEffect(() => { if (ponto) setMostrado(ponto); }, [ponto]);
+  const aberto = !!ponto;
+  useLayoutEffect(() => {
+    const el = caixa.current!;
+    gsap.killTweensOf(el);
+    if (semMovimento()) gsap.set(el, { '--p': aberto ? 1 : 0 });
+    else gsap.to(el, { '--p': aberto ? 1 : 0, duration: VIAGEM, ease: CURVA });
+  }, [aberto]);
   const p = ponto ?? mostrado;
   return (
-    <aside aria-live="polite" aria-label={p ? p.nome : undefined}
-      className={`absolute bottom-4 left-4 right-4 z-10 flex max-h-[70svh] flex-col overflow-hidden rounded-[4px] bg-creme text-terra shadow-[0_30px_60px_-20px_rgb(0_0_0/0.55)] transition-transform duration-700 ease-(--ease-sai) md:bottom-auto md:left-auto md:right-8 md:top-24 md:w-[22rem] md:max-h-[calc(100svh-8rem)] ${ponto ? 'translate-y-0 md:translate-x-0' : 'translate-y-[calc(100%+2rem)] md:translate-x-[calc(100%+3rem)] md:translate-y-0'}`}>
+    <aside ref={caixa} aria-live="polite" aria-label={p ? p.nome : undefined} aria-hidden={!aberto} inert={!aberto}
+      style={{ '--p': 0 } as React.CSSProperties}
+      className="absolute inset-x-0 bottom-0 z-10 flex max-h-[70svh] flex-col overflow-hidden rounded-t-[4px] bg-creme text-terra shadow-[0_-20px_50px_-20px_rgb(0_0_0/calc(0.5*var(--p)))] [transform:translateY(calc((1-var(--p))*100%))] md:inset-y-0 md:left-auto md:max-h-none md:w-[24rem] md:rounded-none md:shadow-[-30px_0_60px_-20px_rgb(0_0_0/calc(0.5*var(--p)))] md:[transform:translateX(calc((1-var(--p))*100%))]">
       {p && (
         <>
-          <button type="button" onClick={fechar} aria-label="Fechar" className="absolute right-3 top-3 z-10 grid size-10 place-items-center bg-creme/90 hover:bg-palha"><X size={20} aria-hidden /></button>
-          {/* A margem fica num bloco interior: no fim do texto há sempre o mesmo espaço que dos lados, mesmo quando o cartão tem de deslizar. */}
+          <button type="button" onClick={fechar} aria-label="Fechar" className="absolute right-3 top-3 z-10 grid size-10 place-items-center bg-creme/90 hover:bg-palha md:right-8 md:top-24"><X size={20} aria-hidden /></button>
+          {/* A margem fica num bloco interior: no fim do texto há sempre o mesmo espaço que dos lados, mesmo quando o painel tem de deslizar. */}
           <div data-cartao className="min-h-0 overflow-y-auto overscroll-contain">
-            <div className="p-6">
-              {p.foto ? <div className="mb-5 aspect-[16/10] overflow-hidden rounded-[2px] bg-palha md:aspect-[4/3]"><Imagem foto={p.foto} sizes="22rem" className="h-full w-full object-cover" /></div>
+            <div className="p-6 md:px-8 md:pb-36 md:pt-24">
+              {p.foto ? <div className="mb-5 aspect-[16/10] overflow-hidden rounded-[2px] bg-palha md:aspect-[4/3]"><Imagem foto={p.foto} sizes="24rem" className="h-full w-full object-cover" /></div>
                 : <FotoPorFazer nome={p.nome} className="mb-5 aspect-[16/10] md:aspect-[4/3]" />}
               <h2 className="titulo t-pequena pr-8">{p.nome}</h2>
               <p className="mt-1 text-sm font-medium text-musgo">{p.tipo}</p>
