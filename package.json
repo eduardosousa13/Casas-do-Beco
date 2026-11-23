@@ -26,7 +26,7 @@
     "test:owner": "node --import tsx --test tests/owner.test.ts",
     "test:owner:postgres": "node --env-file=.env.local --import tsx --test tests/owner-postgres.test.ts",
     "start": "node dist/server/index.mjs",
-    "test:server": "node --import tsx --test tests/server.test.ts"
+    "test:server": "node --import tsx --test tests/server.test.ts tests/security-headers.test.ts"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
