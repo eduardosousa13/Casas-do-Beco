@@ -1,9 +1,9 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowUpRight, X } from 'lucide-react';
 import { Emblema, EmblemaDesenhado } from './Marca';
 import { Linha } from './desenhos';
-import { GRANDE, gsap, Imagem, irPara, ligarScrollSuave, paraOTopo, prenderScroll, ScrollTrigger, semMovimento } from './kit';
+import { GRANDE, TELEFONE, gsap, Imagem, irPara, ligarScrollSuave, paraOTopo, prenderScroll, ScrollTrigger, semMovimento } from './kit';
 import { contactos, paginas, telefoneLink } from './dados';
 import InfoLegal, { type Separador } from './InfoLegal';
 import { aplicarMeta } from './metas';
@@ -40,6 +40,29 @@ export default function Estrutura() {
   useEffect(() => { primeira.current = false; }, []);
   useEffect(() => ligarScrollSuave(), []);
 
+  // Ao tocar numa ligação para outra página, o pano verde tapa o ecrã logo no fotograma seguinte e só
+  // depois a página muda. Trocar de página (desfazer as animações de uma e preparar as da outra) leva
+  // ~150 ms num telemóvel lento; antes isso acontecia com a página velha à vista e o toque parecia não
+  // responder. O aspeto é o mesmo: o pano aparece de uma vez e sobe, como antes.
+  const navegar = useNavigate();
+  const cortina = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    let tapado = false;
+    const clique = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || semMovimento()) return;
+      const a = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
+      if (!a || (a.target && a.target !== '_self') || a.hasAttribute('download') || a.origin !== location.origin) return;
+      if (a.pathname === location.pathname || /^\/(admin|api)(\/|$)/.test(a.pathname)) return;
+      e.preventDefault(); // o <Link> vê isto e não navega; o onClick próprio dele (fechar o menu) corre na mesma
+      if (tapado) return;
+      tapado = true;
+      cobrir(cortina.current);
+      requestAnimationFrame(() => setTimeout(() => { tapado = false; navegar(a.pathname + a.search + a.hash); }));
+    };
+    document.addEventListener('click', clique, true);
+    return () => document.removeEventListener('click', clique, true);
+  }, [navegar]);
+
   return (
     <TopoCtx.Provider value={setTopo}>
       <a href="#conteudo" className="sr-only z-[80] rounded bg-musgo px-4 py-3 text-creme focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Saltar para o conteúdo</a>
@@ -48,7 +71,7 @@ export default function Estrutura() {
         <Outlet />
       </main>
       <Rodape />
-      <Cortina chave={pathname} />
+      <Cortina ref={cortina} chave={pathname} />
     </TopoCtx.Provider>
   );
 }
@@ -63,9 +86,14 @@ function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
     // no computador a pintura encolhe logo para um quadro sobre o creme, por isso o fundo e a letra escura entram cedo.
     // A posição vem do ScrollTrigger, que já a leu neste scroll: ler scrollY aqui, logo depois de as animações
     // escreverem estilos, obrigava o navegador a refazer o layout em cada evento de scroll.
-    const quadro = () => inicio && !semMovimento() && matchMedia(GRANDE).matches;
+    // No telemóvel a hero sobe com a página: o fundo entra quando ela acaba de passar por baixo do cabeçalho.
+    const quadro = () => inicio && !semMovimento() && matchMedia(GRANDE).matches && !matchMedia(TELEFONE).matches;
+    const telefone = () => inicio && matchMedia(TELEFONE).matches;
     let limiar = 0;
-    const medir = () => { limiar = inicio ? innerHeight * (quadro() ? 0.08 : 0.8) : 40; };
+    const medir = () => {
+      const capa = document.querySelector<HTMLElement>('[data-capa]');
+      limiar = !inicio ? 40 : telefone() && capa ? capa.offsetHeight - 64 : innerHeight * (quadro() ? 0.08 : 0.8);
+    };
     medir();
     setDesceu(scrollY > limiar);
     const st = ScrollTrigger.create({ start: 0, end: 'max', onRefresh: self => { medir(); setDesceu(self.scroll() > limiar); }, onUpdate: self => setDesceu(self.scroll() > limiar) });
@@ -217,16 +245,22 @@ function Rodape() {
   );
 }
 
+// Tapar o ecrã com o pano, parado (antes de a página mudar).
+function cobrir(el: HTMLDivElement | null) {
+  if (!el) return;
+  gsap.killTweensOf([el, el.querySelector('svg')]);
+  gsap.set(el, { clipPath: 'inset(0% 0% 0% 0%)', visibility: 'visible' });
+  gsap.set(el.querySelector('svg'), { opacity: 1, y: 0 });
+}
+
 // Cortina entre páginas: a página nova chega tapada pelo verde e o pano sobe.
-function Cortina({ chave }: { chave: string }) {
-  const ref = useRef<HTMLDivElement>(null);
+function Cortina({ chave, ref }: { chave: string; ref: React.RefObject<HTMLDivElement | null> }) {
   const primeira = useRef(true);
   useLayoutEffect(() => {
     if (primeira.current) { primeira.current = false; return; }
     const el = ref.current;
     if (!el || semMovimento()) return;
-    gsap.killTweensOf(el);
-    gsap.set(el, { clipPath: 'inset(0% 0% 0% 0%)', visibility: 'visible' });
+    cobrir(el);
     gsap.timeline()
       .fromTo(el.querySelector('svg'), { opacity: 1, y: 0 }, { opacity: 0, y: -16, duration: 0.5, ease: 'power2.in' }, 0.15)
       .to(el, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.9, ease: 'expo.inOut' }, 0.3)

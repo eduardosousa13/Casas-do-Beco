@@ -21,6 +21,9 @@ export const semMovimento = () => estatico || matchMedia('(prefers-reduced-motio
 
 // Computador com rato: só aqui há secções presas e scroll horizontal. No telemóvel tudo corre em fluxo normal.
 export const GRANDE = '(min-width: 1024px) and (pointer: fine)';
+// Telemóvel, ao alto ou deitado: a hero não fica presa e o logótipo sobe com a pintura (scroll nativo, sem
+// animação ligada ao dedo). Igual à variante telefone: em index.css.
+export const TELEFONE = '(max-width: 767px), (max-height: 500px)';
 export function useGrande() {
   const [g, setG] = useState(() => matchMedia(GRANDE).matches && !semMovimento());
   useEffect(() => {
@@ -169,21 +172,22 @@ export function Ligacao({ para, children, claro = false, principal = false, clas
   );
 }
 
-// Lugar guardado para uma fotografia que ainda não existe.
+// Lugar guardado para uma fotografia que ainda não existe: só o nome, sem aviso de que falta.
 export function FotoPorFazer({ nome, className = '', escuro = false }: { nome: string; className?: string; escuro?: boolean }) {
   return (
     <div className={`flex flex-col items-center justify-center gap-2 rounded-[2px] border border-dashed p-6 text-center ${escuro ? 'border-creme/40 text-creme' : 'border-terra/35 text-terra'} ${className}`}>
       <span className="titulo t-pequena"><em>{nome}</em></span>
-      <span className="text-sm opacity-75">Fotografia por fazer</span>
     </div>
   );
 }
 
 // Scroll suave com a roda e o trackpad (no toque fica o nativo do telemóvel). Corre no relógio do GSAP
 // para os ScrollTrigger acompanharem cada fotograma.
+// No toque o Lenis não suaviza nada, mas corria a cada fotograma e voltava a avisar o ScrollTrigger de
+// cada scroll (que já o ouve sozinho); por isso só se liga com rato ou trackpad.
 let lenis: Lenis | null = null;
 export function ligarScrollSuave() {
-  if (semMovimento()) return () => {};
+  if (semMovimento() || !matchMedia('(pointer: fine)').matches) return () => {};
   const l = new Lenis({ lerp: 0.085, wheelMultiplier: 0.9 });
   l.on('scroll', ScrollTrigger.update);
   const tique = (t: number) => l.raf(t * 1000);
@@ -201,8 +205,10 @@ export function prenderScroll(sim: boolean) {
 
 // Ir para um ponto da página (topo, âncora), suave ou de imediato.
 export function irPara(alvo: number | HTMLElement, suave = false) {
-  if (lenis) { lenis.scrollTo(alvo, { immediate: !suave, force: true, duration: suave ? 1.4 : undefined }); return; }
-  const top = typeof alvo === 'number' ? alvo : alvo.getBoundingClientRect().top + scrollY;
+  // Uma âncora respeita a sua margem (scroll-mt-*), para não ficar debaixo do cabeçalho.
+  const top = typeof alvo === 'number' ? alvo
+    : Math.max(0, alvo.getBoundingClientRect().top + scrollY - (parseFloat(getComputedStyle(alvo).scrollMarginTop) || 0));
+  if (lenis) { lenis.scrollTo(top, { immediate: !suave, force: true, duration: suave ? 1.4 : undefined }); return; }
   window.scrollTo({ top, behavior: (suave && !semMovimento() ? 'smooth' : 'instant') as ScrollBehavior });
 }
 
