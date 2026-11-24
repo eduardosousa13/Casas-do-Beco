@@ -6,7 +6,7 @@ import { BrasaoDesenhado, PinoCasa } from '../Marca';
 import { Capela, Linha, Estandarte, Melancia } from '../desenhos';
 import { Acende, aposAbertura, GRANDE, gsap, ScrollTrigger, TELEFONE, Imagem, Ligacao, Linhas, Revela, semMovimento, useAnimacao } from '../kit';
 import { fotos, pontos } from '../dados';
-import { cheio, TRANSFORMA, VISTA } from '../logotipo';
+import { cheio, emblema, TRANSFORMA, VISTA } from '../logotipo';
 
 export default function Inicio() {
   useTopo('escuro');
@@ -27,6 +27,10 @@ export default function Inicio() {
 function LogoPartes({ className = '' }: { className?: string }) {
   return (
     <svg viewBox={VISTA} className={className} role="img" aria-label="Casas do Beco, Ladoeiro" fill="currentColor" overflow="visible">
+      {/* Contorno do arco, escondido: só aparece no telemóvel, quando o scroll desenha o logótipo ao contrário. */}
+      <g data-contorno opacity={0} transform={TRANSFORMA} fill="none" stroke="currentColor" strokeWidth={22} strokeLinejoin="round">
+        {emblema.map((d, i) => <path key={i} d={d} />)}
+      </g>
       <g data-emblema><g transform={TRANSFORMA}>{cheio.slice(0, 20).map((d, i) => <path key={i} d={d} />)}</g></g>
       {cheio.slice(20, 39).map((d, i) => <g key={i} data-letra><g transform={TRANSFORMA}><path d={d} /></g></g>)}
       <g data-reguas>{cheio.slice(39).map((d, i) => <g key={i} transform={TRANSFORMA}><path d={d} /></g>)}</g>
@@ -62,10 +66,13 @@ function Capa() {
       const { grande, telefone } = ctx.conditions!;
 
       // Telemóvel: nada preso ao dedo. A hero tem a altura do ecrã e sobe com a página, o logótipo com ela,
-      // a desaparecer: a opacidade segue o scroll e chega a zero quando o topo do logótipo está a 16px da barra
-      // do cabeçalho (64px), por isso nunca passa por baixo do Menu nem do Reservar. Só opacidade: o compositor
-      // faz tudo. Quando o logótipo acaba de desaparecer, o emblema do topo entra com um fade curto (corre
-      // sozinho, por isso um scroll rápido ou lento vê o mesmo, e nunca há dois emblemas).
+      // a desfazer-se ao contrário da abertura: as letras sobem e somem, as réguas recolhem, o cheio do arco dá
+      // lugar ao contorno e o contorno apaga-se traço a traço. Tudo segue o scroll e acaba quando o topo do
+      // logótipo está a 16px da barra do cabeçalho (64px), por isso nunca passa por baixo do Menu nem do Reservar;
+      // no fim a opacidade do logótipo também chega a zero, por segurança. Só o contorno obriga a repintar (13
+      // traços, com o comprimento já calculado pelo plugin traco); o resto é opacidade e transformações.
+      // Quando o logótipo acaba de desaparecer, o emblema do topo entra com um fade curto (corre sozinho, por
+      // isso um scroll rápido ou lento vê o mesmo, e nunca há dois emblemas).
       if (telefone) {
         const logo = q('[data-logo]')[0] as HTMLElement;
         const topo = document.querySelector('[data-emblema-topo]');
@@ -73,11 +80,14 @@ function Capa() {
         const mostrar = (v: boolean) => gsap.to(topo, { opacity: v ? 1 : 0, duration: v ? 0.45 : 0.25, ease: 'power2.out', overwrite: true });
         // Distância de scroll até o topo do logótipo chegar aos 80px (medida com a página no topo: a hero começa em 0).
         const percurso = () => Math.max(1, logo.getBoundingClientRect().top + scrollY - 80);
-        gsap.fromTo(logo, { opacity: 1 }, {
-          opacity: 0, ease: 'none',
-          scrollTrigger: { trigger: el, start: 'top top', end: () => `+=${percurso()}`, scrub: true, invalidateOnRefresh: true,
-            onLeave: () => mostrar(true), onEnterBack: () => mostrar(false) },
-        });
+        gsap.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: el, start: 'top top', end: () => `+=${percurso()}`, scrub: true,
+          invalidateOnRefresh: true, onLeave: () => mostrar(true), onEnterBack: () => mostrar(false) } })
+          .to(q('[data-letra]'), { y: -40, opacity: 0, duration: 0.25, stagger: { amount: 0.12 } }, 0)
+          .to(q('[data-reguas]'), { scaleX: 0, transformOrigin: '50% 50%', duration: 0.3 }, 0)
+          .to(q('[data-contorno]'), { opacity: 1, duration: 0.08 }, 0.12)
+          .to(q('[data-emblema]'), { opacity: 0, duration: 0.25 }, 0.12)
+          .fromTo(q('[data-contorno] path'), { traco: '100%' }, { traco: '0%', duration: 0.5, stagger: { amount: 0.18, from: 'end' } }, 0.32)
+          .to(logo, { opacity: 0, duration: 0.12 }, 0.88);
         return;
       }
 
