@@ -16,6 +16,16 @@ const ZOOM_PONTO = 1.35, ZOOM_MAX = 1.6;
 // Fechar demora um pouco mais: o mapa recua até à aldeia inteira, um caminho maior do que aproximar.
 const VIAGEM = 1.2, VIAGEM_FECHO = 1.5, CURVA = 'power3.out';
 
+// Enquadramento inicial (e para onde o mapa volta ao fechar um ponto), sempre no zoom mínimo:
+// - ecrã deitado: encostado à esquerda da fotografia, para a Capela e a Casa Santos, os pontos mais
+//   afastados, ficarem à vista;
+// - ecrã em pé: centrado na Igreja Matriz, nas Casas do Beco e no Festival da Melancia.
+const EM_PE = ['igreja', 'casa', 'festival'];
+const centroEmPe = (() => {
+  const xs = pontos.filter(p => EM_PE.includes(p.id)).map(p => p.x);
+  return xs.length ? (Math.min(...xs) + Math.max(...xs)) / 2 : L / 2;
+})();
+
 type Camara = { ir: (p: Ponto) => void; afastar: () => void };
 
 export default function Mapa() {
@@ -91,6 +101,8 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
     let viagem: gsap.core.Tween | null = null;
     const W = () => v.clientWidth, H = () => v.clientHeight;
     const minS = () => Math.max(W() / L, H() / A);
+    // Centro horizontal do enquadramento inicial; o limite da câmara encosta-o à margem quando for preciso.
+    const inicioX = () => (W() > H() ? 0 : centroEmPe);
     const limitar = () => {
       cam.s = Math.min(minS() * ZOOM_MAX, Math.max(minS(), cam.s));
       const mx = W() / (2 * cam.s), my = H() / (2 * cam.s);
@@ -147,7 +159,7 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
         voar(p.x, p.y + (H() / 2 - alvoY) / s, s, VIAGEM, CURVA, tapado, 0);
       });
     };
-    const afastar = () => { afastado = true; voar(cam.cx, cam.cy, minS(), VIAGEM_FECHO, CURVA, 0, 0); };
+    const afastar = () => { afastado = true; voar(inicioX(), A / 2, minS(), VIAGEM_FECHO, CURVA, 0, 0); };
     ligar({ ir, afastar });
     api.current.zoom = k => {
       afastado = false;
@@ -203,16 +215,16 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
       if (t === tamanho) return;
       tamanho = t;
       if (viagem) return;
-      if (afastado) cam.s = minS();
+      if (afastado) Object.assign(cam, { s: minS(), cx: inicioX(), cy: A / 2 });
       desenhar();
     };
     const observa = new ResizeObserver(redimensiona);
     observa.observe(v);
 
-    // Abre com a aldeia inteira; a imagem assenta devagar até ao zoom mínimo.
-    cam.s = minS() * (semMovimento() ? 1 : 1.08);
+    // Abre no enquadramento inicial; a imagem assenta devagar até ao zoom mínimo.
+    Object.assign(cam, { cx: inicioX(), cy: A / 2, s: minS() * (semMovimento() ? 1 : 1.08) });
     desenhar();
-    voar(L / 2, A / 2, minS(), 2.4, 'expo.out');
+    voar(inicioX(), A / 2, minS(), 2.4, 'expo.out');
     return () => {
       parar(); clearTimeout(tempoRoda); observa.disconnect();
       v.removeEventListener('pointerdown', baixo); v.removeEventListener('pointermove', mexe);
@@ -233,8 +245,8 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
             <button key={p.id} type="button" onClick={() => escolher(p)} aria-pressed={ativo?.id === p.id}
               className="group absolute origin-bottom [transform:translate(-50%,-100%)_scale(var(--inv,1))]"
               style={{ left: p.x, top: p.y }}>
-              {/* O nome fica por cima do ponto; perto das margens da fotografia encosta-se ao lado de dentro para não sair do ecrã. */}
-              <span className={`absolute bottom-full mb-2 block whitespace-nowrap bg-noite/85 ${p.x < 260 ? 'left-0' : p.x > L - 260 ? 'right-0' : 'left-1/2 -translate-x-1/2'} px-3 py-1.5 text-[0.8rem] font-medium text-creme transition-[opacity,transform] duration-300 ease-(--ease-sai) group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 ${ativo?.id === p.id ? 'opacity-100' : 'translate-y-1 opacity-0'}`}>{p.nome}</span>
+              {/* O nome fica por cima do ponto; perto das margens da fotografia encosta-se ao lado de dentro para não sair do ecrã. Invisível, não apanha toques: tapava o ponto vizinho. */}
+              <span className={`pointer-events-none absolute bottom-full mb-2 block whitespace-nowrap bg-noite/85 ${p.x < 260 ? 'left-0' : p.x > L - 260 ? 'right-0' : 'left-1/2 -translate-x-1/2'} px-3 py-1.5 text-[0.8rem] font-medium text-creme transition-[opacity,transform] duration-300 ease-(--ease-sai) group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100 ${ativo?.id === p.id ? 'opacity-100' : 'translate-y-1 opacity-0'}`}>{p.nome}</span>
               {p.id === 'casa' ? (
                 <PinoCasa className="mx-auto block h-12 w-auto drop-shadow-[0_4px_8px_rgb(0_0_0/0.45)] transition-transform duration-300 ease-(--ease-sai) group-hover:-translate-y-1" />
               ) : (
@@ -306,6 +318,22 @@ function Painel({ ponto, fechar }: { ponto: Ponto | null; fechar: () => void }) 
     if (semMovimento()) gsap.set(el, { '--p': aberto ? 1 : 0 });
     else gsap.to(el, { '--p': aberto ? 1 : 0, duration: aberto ? VIAGEM : VIAGEM_FECHO, ease: CURVA });
   }, [aberto]);
+  // Painel lateral: o Fechar fica na linha do Reservar, na margem do texto (32 px). Com o conteúdo do site
+  // limitado a 92rem, em ecrãs largos o Reservar pode cair nesse sítio (1920 px); aí encosta-se logo a seguir.
+  const [fecharX, setFecharX] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const medir = () => {
+      const el = caixa.current, res = document.querySelector<HTMLElement>('header a[href="/reservas"]');
+      if (!el || !res || innerWidth < 768) { setFecharX(null); return; }
+      const esquerda = innerWidth - el.offsetWidth, r = res.getBoundingClientRect();
+      const x = esquerda + 32, tam = 40, folga = 12;
+      const choca = x < r.right + folga && x + tam > r.left - folga;
+      setFecharX(choca ? Math.round(r.right + folga - esquerda) : 32);
+    };
+    medir();
+    addEventListener('resize', medir);
+    return () => removeEventListener('resize', medir);
+  }, [aberto]);
   const p = ponto ?? mostrado;
   return (
     <aside ref={caixa} aria-live="polite" aria-label={p ? p.nome : undefined} aria-hidden={!aberto} inert={!aberto}
@@ -313,10 +341,10 @@ function Painel({ ponto, fechar }: { ponto: Ponto | null; fechar: () => void }) 
       className="absolute inset-x-0 bottom-0 z-10 flex max-h-[70svh] flex-col overflow-hidden rounded-t-[4px] bg-creme text-terra shadow-[0_-20px_50px_-20px_rgb(0_0_0/calc(0.5*var(--p)))] [transform:translateY(calc((1-var(--p))*100%))] md:inset-y-0 md:left-auto md:max-h-none md:w-[24rem] md:rounded-none md:shadow-[-30px_0_60px_-20px_rgb(0_0_0/calc(0.5*var(--p)))] md:[transform:translateX(calc((1-var(--p))*100%))]">
       {p && (
         <>
-          {/* Telemóvel de pé: no canto da fotografia. Painel lateral: na linha do Reservar, alinhado com a margem
-              do texto, com a mesma moldura fina. Em ambos enche de verde ao passar. */}
-          <button type="button" onClick={fechar} aria-label="Fechar"
-            className="absolute right-3 top-3 z-10 grid size-10 place-items-center bg-creme/90 text-terra transition-colors duration-300 hover:bg-musgo hover:text-creme focus-visible:bg-musgo focus-visible:text-creme md:left-8 md:right-auto md:top-3 md:border md:border-musgo/35 md:bg-transparent md:text-musgo md:hover:border-musgo md:hover:bg-musgo md:hover:text-creme"><X size={20} strokeWidth={1.5} aria-hidden /></button>
+          {/* Telemóvel de pé: no canto da fotografia, verde transparente. Painel lateral: na linha do Reservar,
+              alinhado com a margem do texto, com a mesma moldura fina. Em ambos enche de verde ao passar. */}
+          <button type="button" onClick={fechar} aria-label="Fechar" style={fecharX != null ? { left: fecharX } : undefined}
+            className="absolute right-3 top-3 z-10 grid size-10 place-items-center bg-musgo/55 text-creme backdrop-blur-[2px] transition-colors duration-300 hover:bg-musgo hover:text-creme focus-visible:bg-musgo focus-visible:text-creme md:left-8 md:right-auto md:top-3 md:border md:border-musgo/35 md:bg-transparent md:text-musgo md:hover:border-musgo md:hover:bg-musgo md:hover:text-creme"><X size={20} strokeWidth={1.5} aria-hidden /></button>
           {/* A margem fica num bloco interior: no fim do texto há sempre o mesmo espaço que dos lados, mesmo quando o painel tem de deslizar. */}
           <div data-cartao className="min-h-0 overflow-y-auto overscroll-contain">
             <div className="p-6 md:px-8 md:pb-36 md:pt-24">

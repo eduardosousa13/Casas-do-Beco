@@ -104,6 +104,10 @@
     html[data-mapa-aberto] header .botao-claro { --b-cor: var(--color-musgo); --b-fundo: var(--color-creme); color: var(--b-fundo); }
     html[data-mapa-aberto] header .botao-claro::before { transform: scaleX(1); }
     html[data-mapa-aberto] header .botao-claro:hover, html[data-mapa-aberto] header .botao-claro:focus-visible { --b-cor: var(--color-noite); }
+    /* O botão Fechar do painel fica na linha do cabeçalho: a parte vazia do cabeçalho deixa passar o clique,
+       só o Menu, o emblema e o Reservar o apanham. */
+    html[data-mapa-aberto] header, html[data-mapa-aberto] header > div { pointer-events: none; }
+    html[data-mapa-aberto] header > div > * { pointer-events: auto; }
   }
   /* Cheio (formulários, escolha feita): começa preenchido e, ao passar, recolhe para a direita. */
   .botao-cheio { color: var(--b-fundo); }
