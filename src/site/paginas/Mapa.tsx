@@ -16,7 +16,7 @@ const ZOOM_PONTO = 1.35, ZOOM_MAX = 1.6;
 // Fechar demora um pouco mais: o mapa recua até à aldeia inteira, um caminho maior do que aproximar.
 const VIAGEM = 1.2, VIAGEM_FECHO = 1.5, CURVA = 'power3.out';
 
-// Enquadramento inicial (e para onde o mapa volta ao fechar um ponto), sempre no zoom mínimo:
+// Enquadramento ao abrir a página, sempre no zoom mínimo (fechar um ponto volta à vista anterior ao clique):
 // - ecrã deitado: encostado à esquerda da fotografia, para a Capela e a Casa Santos, os pontos mais
 //   afastados, ficarem à vista;
 // - ecrã em pé: centrado na Igreja Matriz, nas Casas do Beco e no Festival da Melancia.
@@ -98,6 +98,10 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
     // (computador) da imagem; fica escondido por baixo do cartão.
     const cam = { cx: L / 2, cy: A / 2, s: 1, folga: 0, folgaX: 0 };
     let afastado = true;
+    // Vista que a pessoa tinha antes de abrir um ponto; fechar o painel volta a ela. Mudar de ponto com o
+    // painel aberto não a substitui. Se ainda estava no enquadramento inicial (ou a assentar nele), guarda-se
+    // o enquadramento inicial e não um fotograma a meio da animação de abertura.
+    let antes: { cx: number; cy: number; s: number; afastado: boolean } | null = null;
     let viagem: gsap.core.Tween | null = null;
     const W = () => v.clientWidth, H = () => v.clientHeight;
     const minS = () => Math.max(W() / L, H() / A);
@@ -132,10 +136,10 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
     };
     const voar = (cx: number, cy: number, s: number, duracao: number, ease = 'power3.inOut', folga = cam.folga, folgaX = cam.folgaX) => {
       parar();
-      const antes = { ...cam };
+      const atual = { ...cam };
       Object.assign(cam, { cx, cy, s, folga, folgaX }); limitar();
       const fim = vistaAtual();
-      Object.assign(cam, antes);
+      Object.assign(cam, atual);
       if (semMovimento()) { aplicar(fim); return; }
       camada(true);
       const e = vistaAtual();
@@ -144,6 +148,7 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
     // No computador o ponto fica à esquerda do painel. No telemóvel fica a meio do espaço livre entre o
     // cabeçalho e o cartão, medido depois de o cartão mostrar o novo ponto.
     const ir = (p: Ponto) => {
+      antes ??= afastado ? { cx: inicioX(), cy: A / 2, s: minS(), afastado: true } : { cx: cam.cx, cy: cam.cy, s: cam.s, afastado: false };
       afastado = false;
       const s = Math.max(cam.s, minS() * ZOOM_PONTO);
       if (W() >= 768) {
@@ -159,7 +164,11 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
         voar(p.x, p.y + (H() / 2 - alvoY) / s, s, VIAGEM, CURVA, tapado, 0);
       });
     };
-    const afastar = () => { afastado = true; voar(inicioX(), A / 2, minS(), VIAGEM_FECHO, CURVA, 0, 0); };
+    const afastar = () => {
+      const v = antes ?? { cx: inicioX(), cy: A / 2, s: minS(), afastado: true };
+      antes = null; afastado = v.afastado;
+      voar(v.cx, v.cy, v.s, VIAGEM_FECHO, CURVA, 0, 0);
+    };
     ligar({ ir, afastar });
     api.current.zoom = k => {
       afastado = false;
@@ -176,15 +185,28 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
 
     const toques = new Map<number, [number, number]>();
     let dist0 = 0, s0 = 1;
+    // Um toque que começa num ponto fica pendente: se o dedo andar mais de 8 px é um arrasto do mapa (o
+    // navegador puxa os toques próximos para o ponto, e sem isto não se conseguia arrastar perto dele);
+    // se não andar, é um toque normal e abre o ponto.
+    let pendente: number | null = null, arrastou = false;
     const baixo = (e: PointerEvent) => {
-      if ((e.target as HTMLElement).closest('button')) return;
-      v.setPointerCapture(e.pointerId); toques.set(e.pointerId, [e.clientX, e.clientY]);
+      arrastou = false;
+      const botao = (e.target as HTMLElement).closest('button');
+      if (botao && !m.contains(botao)) return;
+      toques.set(e.pointerId, [e.clientX, e.clientY]);
+      if (botao) { pendente = e.pointerId; return; }
+      v.setPointerCapture(e.pointerId);
       parar(); camada(true); v.dataset.agarra = '';
       if (toques.size === 2) { const [a, b] = [...toques.values()]; dist0 = Math.hypot(a[0] - b[0], a[1] - b[1]); s0 = cam.s; }
     };
     const mexe = (e: PointerEvent) => {
       const ant = toques.get(e.pointerId);
       if (!ant) return;
+      if (e.pointerId === pendente) {
+        if (Math.hypot(e.clientX - ant[0], e.clientY - ant[1]) < 8) return;
+        pendente = null; arrastou = true;
+        v.setPointerCapture(e.pointerId); parar(); camada(true); v.dataset.agarra = '';
+      }
       toques.set(e.pointerId, [e.clientX, e.clientY]);
       const r = v.getBoundingClientRect();
       if (toques.size === 1) { cam.cx -= (e.clientX - ant[0]) / cam.s; cam.cy -= (e.clientY - ant[1]) / cam.s; afastado = false; desenhar(); }
@@ -193,7 +215,12 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
         zoomEm((a[0] + b[0]) / 2 - r.left, (a[1] + b[1]) / 2 - r.top, s0 * Math.hypot(a[0] - b[0], a[1] - b[1]) / dist0);
       }
     };
-    const larga = (e: PointerEvent) => { toques.delete(e.pointerId); if (!toques.size) { delete v.dataset.agarra; camada(false); } };
+    const larga = (e: PointerEvent) => {
+      if (e.pointerId === pendente) pendente = null;
+      toques.delete(e.pointerId); if (!toques.size) { delete v.dataset.agarra; camada(false); }
+    };
+    // Depois de um arrasto que começou num ponto, o clique que o navegador ainda gera não abre nada.
+    const clique = (e: MouseEvent) => { if (arrastou) { e.stopPropagation(); e.preventDefault(); arrastou = false; } };
     // A roda sozinha continua a descer a página; com Ctrl (ou o gesto de beliscar do trackpad) aproxima.
     let tempoRoda = 0;
     const roda = (e: WheelEvent) => {
@@ -207,6 +234,7 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
     v.addEventListener('pointermove', mexe);
     v.addEventListener('pointerup', larga);
     v.addEventListener('pointercancel', larga);
+    v.addEventListener('click', clique, true);
     v.addEventListener('wheel', roda, { passive: false });
     // Só reage a mudanças reais de tamanho e não corta uma viagem a meio (cada fotograma já se ajusta).
     let tamanho = `${W()}x${H()}`;
@@ -228,7 +256,7 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
     return () => {
       parar(); clearTimeout(tempoRoda); observa.disconnect();
       v.removeEventListener('pointerdown', baixo); v.removeEventListener('pointermove', mexe);
-      v.removeEventListener('pointerup', larga); v.removeEventListener('pointercancel', larga);
+      v.removeEventListener('pointerup', larga); v.removeEventListener('pointercancel', larga); v.removeEventListener('click', clique, true);
       v.removeEventListener('wheel', roda);
     };
   }, [ligar]);
