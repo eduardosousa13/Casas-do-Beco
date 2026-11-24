@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ElementType, type ReactNode } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type ElementType, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -17,7 +17,15 @@ export { gsap, ScrollTrigger };
 
 // Sem movimento: preferência do sistema, ou ?estatico no endereço (para rever o estado final).
 const estatico = typeof location !== 'undefined' && new URLSearchParams(location.search).has('estatico');
-export const semMovimento = () => estatico || matchMedia('(prefers-reduced-motion: reduce)').matches;
+export const semMovimento = () => estatico || (typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches);
+// O mesmo, para usar no que se desenha: na build (pré-render) e no primeiro desenho do navegador vale "com
+// movimento", para o HTML gerado e o do React coincidirem; logo a seguir passa ao valor real.
+const assinarMovimento = (f: () => void) => {
+  const m = matchMedia('(prefers-reduced-motion: reduce)');
+  m.addEventListener('change', f);
+  return () => m.removeEventListener('change', f);
+};
+export const useSemMovimento = () => useSyncExternalStore(assinarMovimento, semMovimento, () => false);
 
 // Computador com rato: só aqui há secções presas e scroll horizontal. No telemóvel tudo corre em fluxo normal.
 export const GRANDE = '(min-width: 1024px) and (pointer: fine)';
@@ -78,13 +86,17 @@ export function Linhas({ as: T = 'p', className = '', children, atraso = 0, imed
     const el = ref.current;
     SplitText.create(el, {
       type: 'lines', mask: 'lines', linesClass: 'linha-mascara', autoSplit: true,
-      onSplit: self => gsap.from(self.lines, {
-        yPercent: 110, duration: 1.2, stagger: 0.08, delay: atraso, ease: 'expo.out',
-        ...(imediato ? {} : { scrollTrigger: { trigger: el, start: 'top 88%', once: true } }),
-      }),
+      onSplit: self => {
+        const t = gsap.from(self.lines, {
+          yPercent: 110, duration: 1.2, stagger: 0.08, delay: atraso, ease: 'expo.out',
+          ...(imediato ? {} : { scrollTrigger: { trigger: el, start: 'top 88%', once: true } }),
+        });
+        el.dataset.dividido = '';
+        return t;
+      },
     });
   }, { scope: ref });
-  return <T ref={ref} className={className}>{children}</T>;
+  return <T ref={ref} data-linhas className={className}>{children}</T>;
 }
 
 // Parágrafo que ganha cor palavra a palavra à medida que se lê (o efeito do Hotel Odisej).
@@ -95,13 +107,17 @@ export function Acende({ as: T = 'p', className = '', children }: { as?: Element
     const el = ref.current;
     SplitText.create(el, {
       type: 'words', autoSplit: true,
-      onSplit: self => gsap.fromTo(self.words, { opacity: 0.16 }, {
-        opacity: 1, stagger: 0.1, ease: 'none',
-        scrollTrigger: { trigger: el, start: 'top 85%', end: 'bottom 65%', scrub: 0.6 },
-      }),
+      onSplit: self => {
+        const t = gsap.fromTo(self.words, { opacity: 0.16 }, {
+          opacity: 1, stagger: 0.1, ease: 'none',
+          scrollTrigger: { trigger: el, start: 'top 85%', end: 'bottom 65%', scrub: 0.6 },
+        });
+        el.dataset.dividido = '';
+        return t;
+      },
     });
   }, { scope: ref });
-  return <T ref={ref} className={className}>{children}</T>;
+  return <T ref={ref} data-acende className={className}>{children}</T>;
 }
 
 // Fotografia com AVIF e JPEG nos dois tamanhos.
@@ -129,7 +145,7 @@ export function Revela({ foto, className = '', sizes, paralaxe = true }: { foto:
     if (paralaxe) gsap.fromTo(img, { yPercent: -5 }, { yPercent: 5, ease: 'none', scrollTrigger: { trigger: ref.current, start: 'top bottom', end: 'bottom top', scrub: true } });
   }, { scope: ref });
   return (
-    <div ref={ref} className={`relative overflow-hidden bg-palha ${className}`}>
+    <div ref={ref} data-revela className={`relative overflow-hidden bg-palha ${className}`}>
       <Imagem foto={foto} sizes={sizes} className="absolute inset-0 h-full w-full object-cover" />
     </div>
   );
@@ -146,9 +162,10 @@ export function Desenho({ children, className = '', viewBox, inicio = 'top 85%',
       traco: '100%', ease: 'none', stagger: 0.12,
       scrollTrigger: { trigger: ref.current, start: inicio, end: fim, scrub: 0.8 },
     });
+    ref.current.dataset.pronto = '';
   }, { scope: ref });
   return (
-    <svg ref={ref} viewBox={viewBox} preserveAspectRatio={esticar ? 'none' : undefined} className={className} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"
+    <svg ref={ref} data-desenho viewBox={viewBox} preserveAspectRatio={esticar ? 'none' : undefined} className={className} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"
       role={titulo ? 'img' : undefined} aria-label={titulo} aria-hidden={titulo ? undefined : true}>
       {children}
     </svg>

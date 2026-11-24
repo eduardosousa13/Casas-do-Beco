@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { ArrowUpRight, X } from 'lucide-react';
 import { Emblema, EmblemaDesenhado } from './Marca';
 import { Linha } from './desenhos';
-import { GRANDE, TELEFONE, gsap, Imagem, irPara, ligarScrollSuave, paraOTopo, prenderScroll, ScrollTrigger, semMovimento } from './kit';
+import { GRANDE, TELEFONE, gsap, Imagem, irPara, ligarScrollSuave, paraOTopo, prenderScroll, ScrollTrigger, semMovimento, useSemMovimento } from './kit';
 import { contactos, paginas, telefoneLink } from './dados';
 import InfoLegal, { type Separador } from './InfoLegal';
 import { aplicarMeta } from './metas';
@@ -80,6 +80,7 @@ function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
   const [desceu, setDesceu] = useState(false);
   const [menu, setMenu] = useState(false);
   const { pathname } = useLocation();
+  const parado = useSemMovimento();
 
   useEffect(() => {
     // O cabeçalho fica sempre visível. Na página inicial só ganha fundo depois de o logótipo grande sair do ecrã;
@@ -117,7 +118,7 @@ function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
           </button>
           {/* Na página inicial com movimento, quem mostra o emblema é a saída da hero (Inicio.tsx). */}
           <Link to="/" aria-label="Casas do Beco, página inicial" data-emblema-topo
-            className={semMovimento() ? `transition-[opacity,transform] duration-700 ease-(--ease-sai) ${inicio && !desceu ? 'pointer-events-none -translate-y-2 opacity-0' : ''}` : ''}>
+            className={parado ? `transition-[opacity,transform] duration-700 ease-(--ease-sai) ${inicio && !desceu ? 'pointer-events-none -translate-y-2 opacity-0' : ''}` : ''}>
             <Emblema className="h-10 w-auto" />
           </Link>
           <Link to="/reservas" className={`botao botao-pequeno justify-self-end ${claro ? 'botao-claro' : ''}`}>

@@ -147,6 +147,15 @@
 @keyframes a-carregar-roda { to { transform: rotate(1turn); } }
 @keyframes a-carregar-entra { from { opacity: 0; } }
 
+/* Estado de partida das animações de entrada, já no HTML pré-renderizado (classe "anima" posta no <head> do
+   index.html). O GSAP escreve o mesmo estado ao arrancar e depois anima; os [data-pronto]/[data-dividido]
+   marcam quem já foi preparado. */
+html.anima [data-linhas]:not([data-dividido]), html.anima [data-desenho]:not([data-pronto]) { visibility: hidden; }
+html.anima [data-acende]:not([data-dividido]) { opacity: 0.16; }
+html.anima [data-revela] { clip-path: inset(100% 0% 0% 0%); }
+html.anima [data-cortina] { clip-path: inset(0% 0% 100% 0%); }
+html.anima [aria-label="Como chegar"] [data-pino]:not([data-pronto]) { opacity: 0; }
+
 /* Linhas do SplitText: a máscara corta a linha enquanto sobe. */
 .linha-mascara { padding-bottom: 0.08em; margin-bottom: -0.08em; }
 

@@ -30,6 +30,15 @@
     <link rel="preload" href="./src/fontes/cormorant-latin.woff2" as="font" type="font/woff2" crossorigin fetchpriority="low">
     <link rel="preload" href="./src/fontes/cormorant-italico-latin.woff2" as="font" type="font/woff2" crossorigin fetchpriority="low">
     <script>
+// Com movimento, o HTML pré-renderizado já nasce no estado em que as animações de entrada começam (index.css,
+// html.anima): assim nada aparece e volta a esconder-se quando o JavaScript chega. Se o JavaScript não arrancar
+// em 12 s, a classe sai e mostra-se tudo.
+(function(){
+  var h=document.documentElement;
+  if(/[?&]estatico\b/.test(location.search)||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  h.classList.add('anima');
+  setTimeout(function(){if(!window.__cdbArrancou)h.classList.remove('anima');},12000);
+})();
 // A fotografia do topo da página começa a descarregar já, e não só quando o React a desenha (com prioridade
 // baixa, para não atrasar o JavaScript). Ficheiros e tamanhos iguais aos do <Imagem> (dados.ts), para reaproveitar.
 (function(){

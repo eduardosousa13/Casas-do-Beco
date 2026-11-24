@@ -24,7 +24,7 @@ export default function Casa() {
   useAnimacao(() => {
     if (semMovimento()) return;
     // Cada fotografia abre como uma cortina ao entrar no ecrã; as colunas sobem a velocidades diferentes.
-    gsap.utils.toArray<HTMLElement>('[data-foto]').forEach(el => {
+    gsap.utils.toArray<HTMLElement>('[data-cortina]').forEach(el => {
       gsap.fromTo(el, { clipPath: 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.3, ease: 'expo.inOut', scrollTrigger: { trigger: el, start: 'top 92%', once: true } });
       gsap.fromTo(el.querySelector('img'), { scale: 1.2 }, { scale: 1, duration: 1.8, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 92%', once: true } });
     });
@@ -42,7 +42,7 @@ export default function Casa() {
           {galeria.map((g, i) => (
             <li key={g.foto.nome} className={lugar[i]}>
               <button type="button" onClick={() => setAberta(i)} className="group block w-full text-left" aria-label={`Ver maior: ${g.legenda}`}>
-                <div data-foto className={`relative overflow-hidden rounded-[2px] bg-palha ${g.foto.a > g.foto.l ? 'aspect-[3/4]' : 'aspect-[4/3]'} ${i === 0 ? 'lg:aspect-[16/9]' : ''}`}>
+                <div data-cortina className={`relative overflow-hidden rounded-[2px] bg-palha ${g.foto.a > g.foto.l ? 'aspect-[3/4]' : 'aspect-[4/3]'} ${i === 0 ? 'lg:aspect-[16/9]' : ''}`}>
                   <Imagem foto={g.foto} sizes={i === 0 ? '100vw' : '(min-width: 1024px) 40vw, 50vw'} className="h-full w-full object-cover transition-transform duration-[1.2s] ease-(--ease-sai) group-hover:scale-[1.04]" />
                 </div>
                 <span className="mt-3 block text-sm text-terra/80">{g.legenda}</span>

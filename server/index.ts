@@ -24,6 +24,13 @@ async function html(file:string,url:string){
  if(!htmlCache.has(file))htmlCache.set(file,await readFile(path.join(clientRoot,file),'utf8'));
  return htmlCache.get(file)!;
 }
+// Páginas interiores com o conteúdo já em HTML (scripts/build.mjs); no --dev, ou se faltar o ficheiro, o molde vazio.
+const prerendered=new Map<string,string|null>();
+async function publicHtml(pathname:string,url:string){
+ if(dev||pathname==='/')return html('index.html',url);
+ if(!prerendered.has(pathname))prerendered.set(pathname,await readFile(path.join(root,'dist/server/paginas',pathname+'.html'),'utf8').catch(()=>null));
+ return prerendered.get(pathname)??html('index.html',url);
+}
 const server=createServer({requestTimeout:15000,headersTimeout:10000},async(req,res)=>{
  try{
   const incoming=new URL(req.url||'/','http://localhost'),pathname=incoming.pathname.replace(/\/$/,'')||'/';
@@ -37,7 +44,7 @@ const server=createServer({requestTimeout:15000,headersTimeout:10000},async(req,
    const boot=await adminBootstrap(request);if(boot instanceof Response){await sendResponse(req,res,boot);return;}
    await sendResponse(req,res,page((await html('admin.html',req.url||'/admin')).replace('__ADMIN_BOOTSTRAP__',bootstrapJson(boot)),{},true));return;
   }
-  if(publicPages.has(pathname)){await sendResponse(req,res,page(comMeta(await html('index.html',req.url||'/'),pathname)));return;}
+  if(publicPages.has(pathname)){await sendResponse(req,res,page(comMeta(await publicHtml(pathname,req.url||'/'),pathname)));return;}
   if(legacyRedirects[pathname]){res.writeHead(301,{Location:legacyRedirects[pathname]});res.end();return;}
   if(pathname==='/reserva/resultado'||pathname==='/reserva/cancelada'){
    const name=pathname.endsWith('resultado')?'resultado':'cancelada';

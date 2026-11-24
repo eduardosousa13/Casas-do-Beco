@@ -12,9 +12,10 @@ export function EmblemaDesenhado({ className = '', inicio = 'top 80%', fim = 'bo
     const tl = gsap.timeline({ scrollTrigger: { trigger: ref.current, start: inicio, end: fim, scrub: 0.8 } });
     tl.fromTo(ref.current.querySelectorAll('.traco'), { traco: '0%' }, { traco: '100%', ease: 'none', stagger: 0.06, duration: 1 })
       .fromTo(ref.current.querySelector('.cheio'), { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.5 }, '>-0.15');
+    ref.current.dataset.pronto = '';
   }, { scope: ref });
   return (
-    <svg ref={ref} viewBox={VISTA_EMBLEMA} className={className} aria-hidden="true" overflow="visible">
+    <svg ref={ref} data-desenho viewBox={VISTA_EMBLEMA} className={className} aria-hidden="true" overflow="visible">
       <g transform={TRANSFORMA}>
         <g fill="none" stroke="currentColor" strokeWidth={22} strokeLinejoin="round">
           {emblema.map((d, i) => <path key={i} className="traco" d={d} />)}
@@ -40,9 +41,10 @@ export function BrasaoDesenhado({ className = '', inicio = 'top 85%' }: { classN
       .fromTo(ref.current.querySelector('.revela'), { attr: { height: 0 } }, { attr: { height: 433 }, duration: 1.2, ease: 'power2.inOut' }, 0.3)
       .to(tracos, { opacity: 0, duration: 0.5, ease: 'power1.in' }, 1.4);
     ScrollTrigger.create({ trigger: ref.current, start: inicio, once: true, onEnter: () => tl.play() });
+    ref.current.dataset.pronto = '';
   }, { scope: ref });
   return (
-    <svg ref={ref} viewBox={VISTA_BRASAO} className={className} role="img" aria-label="Brasão do Ladoeiro" overflow="visible">
+    <svg ref={ref} data-desenho viewBox={VISTA_BRASAO} className={className} role="img" aria-label="Brasão do Ladoeiro" overflow="visible">
       <g transform={TRANSFORMA_BRASAO}>
         <g className="tracos" fill="none" stroke="currentColor" strokeWidth={26} strokeLinejoin="round" strokeLinecap="round">
           {brasaoTraco.map((d, i) => <path key={i} d={d} />)}

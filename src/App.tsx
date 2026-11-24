@@ -11,9 +11,9 @@ import SobreNos from './site/paginas/SobreNos';
 import { Privacidade, Termos } from './site/paginas/Legal';
 import NaoEncontrada from './site/paginas/NaoEncontrada';
 
-export default function App() {
+// As rotas ficam à parte do router: no navegador vão dentro do BrowserRouter, na build dentro do StaticRouter.
+export function Rotas() {
   return (
-    <BrowserRouter>
       <Routes>
         <Route element={<Estrutura />}>
           <Route path="/" element={<Inicio />} />
@@ -27,6 +27,9 @@ export default function App() {
           <Route path="*" element={<NaoEncontrada />} />
         </Route>
       </Routes>
-    </BrowserRouter>
   );
+}
+
+export default function App() {
+  return <BrowserRouter><Rotas /></BrowserRouter>;
 }

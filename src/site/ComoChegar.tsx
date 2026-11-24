@@ -27,7 +27,9 @@ export function FaixaComoChegar() {
     if (semMovimento()) return;
     const el = ref.current!;
     gsap.fromTo(el.querySelector('[data-ruas]'), { scale: 1.12 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: true } });
-    gsap.from(el.querySelector('[data-pino]'), { yPercent: -160, opacity: 0, duration: 1.1, ease: 'bounce.out', scrollTrigger: { trigger: el, start: 'top 70%' } });
+    const pino = el.querySelector<HTMLElement>('[data-pino]')!;
+    gsap.from(pino, { yPercent: -160, opacity: 0, duration: 1.1, ease: 'bounce.out', scrollTrigger: { trigger: el, start: 'top 70%' } });
+    pino.dataset.pronto = '';
   }, { scope: ref });
 
   return (
