@@ -24,7 +24,7 @@ export default function Casa() {
   useAnimacao(() => {
     if (semMovimento()) return;
     // Cada fotografia abre como uma cortina ao entrar no ecrã; as colunas sobem a velocidades diferentes.
-    gsap.utils.toArray<HTMLElement>('[data-foto]').forEach(el => {
+    gsap.utils.toArray<HTMLElement>('[data-cortina]').forEach(el => {
       gsap.fromTo(el, { clipPath: 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.3, ease: 'expo.inOut', scrollTrigger: { trigger: el, start: 'top 92%', once: true } });
       gsap.fromTo(el.querySelector('img'), { scale: 1.2 }, { scale: 1, duration: 1.8, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 92%', once: true } });
     });
@@ -42,7 +42,7 @@ export default function Casa() {
           {galeria.map((g, i) => (
             <li key={g.foto.nome} className={lugar[i]}>
               <button type="button" onClick={() => setAberta(i)} className="group block w-full text-left" aria-label={`Ver maior: ${g.legenda}`}>
-                <div data-foto className={`relative overflow-hidden rounded-[2px] bg-palha ${g.foto.a > g.foto.l ? 'aspect-[3/4]' : 'aspect-[4/3]'} ${i === 0 ? 'lg:aspect-[16/9]' : ''}`}>
+                <div data-cortina className={`relative overflow-hidden rounded-[2px] bg-palha ${g.foto.a > g.foto.l ? 'aspect-[3/4]' : 'aspect-[4/3]'} ${i === 0 ? 'lg:aspect-[16/9]' : ''}`}>
                   <Imagem foto={g.foto} sizes={i === 0 ? '100vw' : '(min-width: 1024px) 40vw, 50vw'} className="h-full w-full object-cover transition-transform duration-[1.2s] ease-(--ease-sai) group-hover:scale-[1.04]" />
                 </div>
                 <span className="mt-3 block text-sm text-terra/80">{g.legenda}</span>
@@ -92,6 +92,7 @@ function Visor({ itens, indice, mudar }: { itens: { foto: Foto; legenda: string 
   }, [indice, itens.length, mudar]);
 
   const atual = indice === null ? null : itens[indice];
+  const [carregada, setCarregada] = useState<string | null>(null);
   return (
     <dialog ref={ref} aria-label="Fotografia ampliada" data-lenis-prevent onClose={() => { prenderScroll(false); mudar(null); }}
       className="m-0 h-dvh max-h-none w-full max-w-none bg-noite/95 p-0 text-creme backdrop:bg-noite/70">
@@ -102,7 +103,14 @@ function Visor({ itens, indice, mudar }: { itens: { foto: Foto; legenda: string 
             <button type="button" onClick={() => mudar(null)} className="flex items-center gap-2 py-3"><X size={22} strokeWidth={1.4} aria-hidden /> Fechar</button>
           </div>
           <div className="relative min-h-0 px-4 sm:px-20">
-            <Imagem key={atual.foto.nome} foto={atual.foto} sizes="100vw" className="mx-auto h-full w-auto max-w-full object-contain" />
+            {/* Enquanto a fotografia grande chega, um círculo discreto no meio (só aparece se demorar mais de um quarto de segundo). */}
+            {carregada !== atual.foto.nome && (
+              <div role="status" className="pointer-events-none absolute inset-0 grid place-items-center">
+                <span className="a-carregar" aria-hidden /><span className="sr-only">A carregar a fotografia</span>
+              </div>
+            )}
+            <Imagem key={atual.foto.nome} foto={atual.foto} sizes="100vw" carregou={() => setCarregada(atual.foto.nome)}
+              className={`mx-auto h-full w-auto max-w-full object-contain transition-opacity duration-300 ${carregada === atual.foto.nome ? 'opacity-100' : 'opacity-0'}`} />
             <button type="button" onClick={() => mudar((indice! - 1 + itens.length) % itens.length)} aria-label="Fotografia anterior"
               className="absolute left-2 top-1/2 grid size-12 -translate-y-1/2 place-items-center border border-creme/30 bg-noite/40 hover:bg-creme/15 sm:left-6"><ChevronLeft aria-hidden /></button>
             <button type="button" onClick={() => mudar((indice! + 1) % itens.length)} aria-label="Fotografia seguinte"

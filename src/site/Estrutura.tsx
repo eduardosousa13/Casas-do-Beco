@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { ArrowUpRight, X } from 'lucide-react';
 import { Emblema, EmblemaDesenhado } from './Marca';
 import { Linha } from './desenhos';
-import { GRANDE, TELEFONE, gsap, Imagem, irPara, ligarScrollSuave, paraOTopo, prenderScroll, ScrollTrigger, semMovimento } from './kit';
+import { GRANDE, TELEFONE, gsap, Imagem, irPara, ligarScrollSuave, paraOTopo, prenderScroll, ScrollTrigger, semMovimento, useSemMovimento } from './kit';
 import { contactos, paginas, telefoneLink } from './dados';
 import InfoLegal, { type Separador } from './InfoLegal';
 import { aplicarMeta } from './metas';
@@ -80,6 +80,7 @@ function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
   const [desceu, setDesceu] = useState(false);
   const [menu, setMenu] = useState(false);
   const { pathname } = useLocation();
+  const parado = useSemMovimento();
 
   useEffect(() => {
     // O cabeçalho fica sempre visível. Na página inicial só ganha fundo depois de o logótipo grande sair do ecrã;
@@ -108,7 +109,7 @@ function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
       <header className={`fixed inset-x-0 top-0 z-50 transition-[transform,background-color,color,box-shadow] duration-500 ease-(--ease-sai) ${desceu ? 'bg-creme shadow-[0_1px_0_rgb(68_62_43/0.12)]' : 'bg-transparent'} ${cor}`}>
         <div className="contentor grid h-16 grid-cols-[1fr_auto_1fr] items-center">
           <button type="button" onClick={() => setMenu(true)} aria-haspopup="dialog" aria-expanded={menu}
-            className="group flex items-center gap-3 justify-self-start py-3 text-[0.95rem] font-medium">
+            className="group flex items-center gap-3 justify-self-start py-3 rotulo">
             <span className="flex w-7 flex-col gap-[6px]" aria-hidden>
               <span className="h-px w-full bg-current transition-transform duration-500 ease-(--ease-sai) group-hover:translate-x-1" />
               <span className="h-px w-2/3 bg-current transition-[width] duration-500 ease-(--ease-sai) group-hover:w-full" />
@@ -117,7 +118,7 @@ function Cabecalho({ topo, inicio }: { topo: Topo; inicio: boolean }) {
           </button>
           {/* Na página inicial com movimento, quem mostra o emblema é a saída da hero (Inicio.tsx). */}
           <Link to="/" aria-label="Casas do Beco, página inicial" data-emblema-topo
-            className={semMovimento() ? `transition-[opacity,transform] duration-700 ease-(--ease-sai) ${inicio && !desceu ? 'pointer-events-none -translate-y-2 opacity-0' : ''}` : ''}>
+            className={parado ? `transition-[opacity,transform] duration-700 ease-(--ease-sai) ${inicio && !desceu ? 'pointer-events-none -translate-y-2 opacity-0' : ''}` : ''}>
             <Emblema className="h-10 w-auto" />
           </Link>
           <Link to="/reservas" className={`botao botao-pequeno justify-self-end ${claro ? 'botao-claro' : ''}`}>
@@ -160,7 +161,7 @@ function Menu({ aberto, fechar }: { aberto: boolean; fechar: () => void }) {
       tabIndex={-1} className="m-0 h-dvh max-h-none w-full max-w-none bg-musgo p-0 text-creme outline-none backdrop:bg-transparent">
       <div className="contentor flex h-full flex-col">
         <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center">
-          <button type="button" onClick={fechar} className="flex items-center gap-3 justify-self-start py-3 text-[0.95rem] font-medium">
+          <button type="button" onClick={fechar} className="flex items-center gap-3 justify-self-start py-3 rotulo">
             <X size={22} strokeWidth={1.4} aria-hidden /> Fechar
           </button>
           <Link to="/" onClick={fechar} aria-label="Página inicial"><Emblema className="h-10 w-auto text-creme" /></Link>

@@ -21,4 +21,14 @@ for(const entry of await readdir('dist/client',{recursive:true,withFileTypes:tru
  if(br.length<data.length){await writeFile(file+'.br',br);poupado+=data.length-br.length;}
  if(gz.length<data.length)await writeFile(file+'.gz',gz);
 }
-console.log(`Node server and public assets built (static text precompressed, ${Math.round(poupado/1024)} KB saved with brotli).`);
+// Páginas interiores pré-renderizadas: o HTML já leva o conteúdo, por isso o texto e as fotos aparecem antes
+// de o JavaScript chegar (num telemóvel fraco, 2 s mais cedo). A página inicial fica de fora: a abertura já
+// mostra o logótipo logo, e o conteúdo dela (com o brasão e o logótipo em SVG) só pesava no HTML.
+const {render}=await import(path.resolve('dist/ssr/entry-server.js'));
+const molde=await readFile('dist/client/index.html','utf8');
+if(!molde.includes('<div id="root"></div>'))throw Error('index.html sem <div id="root"></div>');
+await mkdir('dist/server/paginas',{recursive:true});
+const prerender=['/casa','/mapa','/tradicoes','/sobre-nos','/reservas','/termos','/privacidade'];
+for(const url of prerender)await writeFile(`dist/server/paginas${url}.html`,molde.replace('<div id="root"></div>',()=>`<div id="root">${render(url)}</div>`));
+await rm('dist/ssr',{recursive:true,force:true});
+console.log(`Node server and public assets built (static text precompressed, ${Math.round(poupado/1024)} KB saved with brotli; ${prerender.length} pages prerendered).`);

@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTopo } from '../Estrutura';
 import { FaixaComoChegar } from '../ComoChegar';
@@ -6,7 +6,7 @@ import { BrasaoDesenhado, PinoCasa } from '../Marca';
 import { Capela, Linha, Estandarte, Melancia } from '../desenhos';
 import { Acende, aposAbertura, GRANDE, gsap, ScrollTrigger, TELEFONE, Imagem, Ligacao, Linhas, Revela, semMovimento, useAnimacao } from '../kit';
 import { fotos, pontos } from '../dados';
-import { cheio, TRANSFORMA, VISTA } from '../logotipo';
+import { cheio, emblema, TRANSFORMA, VISTA } from '../logotipo';
 
 export default function Inicio() {
   useTopo('escuro');
@@ -27,6 +27,10 @@ export default function Inicio() {
 function LogoPartes({ className = '' }: { className?: string }) {
   return (
     <svg viewBox={VISTA} className={className} role="img" aria-label="Casas do Beco, Ladoeiro" fill="currentColor" overflow="visible">
+      {/* Contorno do arco, escondido: só aparece no telemóvel, quando o scroll desenha o logótipo ao contrário. */}
+      <g data-contorno opacity={0} transform={TRANSFORMA} fill="none" stroke="currentColor" strokeWidth={22} strokeLinejoin="round">
+        {emblema.map((d, i) => <path key={i} d={d} />)}
+      </g>
       <g data-emblema><g transform={TRANSFORMA}>{cheio.slice(0, 20).map((d, i) => <path key={i} d={d} />)}</g></g>
       {cheio.slice(20, 39).map((d, i) => <g key={i} data-letra><g transform={TRANSFORMA}><path d={d} /></g></g>)}
       <g data-reguas>{cheio.slice(39).map((d, i) => <g key={i} transform={TRANSFORMA}><path d={d} /></g>)}</g>
@@ -47,6 +51,22 @@ function voo(logo: HTMLElement) {
 // O logótipo da abertura acaba exatamente aqui: mesmo tamanho, mesma posição, mesma cor.
 function Capa() {
   const ref = useRef<HTMLElement>(null);
+  // Telemóvel: a altura da hero fica presa em píxeis à altura do ecrã quando a página abre. No Chrome do iPhone
+  // (e em alguns Android) as unidades svh/dvh acompanham a barra do navegador a aparecer e a desaparecer em cada
+  // mudança de sentido do scroll; a hero mudava de altura e a pintura (object-cover) e o logótipo saltavam.
+  // Só volta a medir quando a largura muda (rodar o telemóvel), nunca por causa da barra.
+  useEffect(() => {
+    const el = ref.current!;
+    let largura = 0;
+    const fixar = () => {
+      if (innerWidth === largura) return;
+      largura = innerWidth;
+      el.style.setProperty('--capa-altura', `${innerHeight}px`);
+    };
+    fixar();
+    addEventListener('resize', fixar);
+    return () => { removeEventListener('resize', fixar); el.style.removeProperty('--capa-altura'); };
+  }, []);
   useAnimacao(() => {
     const el = ref.current!;
     const q = gsap.utils.selector(el);
@@ -61,14 +81,29 @@ function Capa() {
     mm.add({ grande: GRANDE, telefone: TELEFONE, todos: 'all' }, ctx => {
       const { grande, telefone } = ctx.conditions!;
 
-      // Telemóvel: nada preso ao dedo. A hero tem a altura do ecrã e sobe com a página, o logótipo com ela;
-      // só quando ele sai inteiro do ecrã (o cabeçalho é transparente por cima da pintura) é que o emblema do topo aparece, com um
-      // fade curto (corre sozinho, por isso um scroll rápido ou lento vê o mesmo, e nunca há dois emblemas).
+      // Telemóvel: nada preso ao dedo. A hero tem a altura do ecrã e sobe com a página, o logótipo com ela,
+      // a desfazer-se ao contrário da abertura: as letras sobem e somem, as réguas recolhem, o cheio do arco dá
+      // lugar ao contorno e o contorno apaga-se traço a traço. Tudo segue o scroll e acaba quando o topo do
+      // logótipo está a 16px da barra do cabeçalho (64px), por isso nunca passa por baixo do Menu nem do Reservar;
+      // no fim a opacidade do logótipo também chega a zero, por segurança. Só o contorno obriga a repintar (13
+      // traços, com o comprimento já calculado pelo plugin traco); o resto é opacidade e transformações.
+      // Quando o logótipo acaba de desaparecer, o emblema do topo entra com um fade curto (corre sozinho, por
+      // isso um scroll rápido ou lento vê o mesmo, e nunca há dois emblemas).
       if (telefone) {
+        const logo = q('[data-logo]')[0] as HTMLElement;
         const topo = document.querySelector('[data-emblema-topo]');
         gsap.set(topo, { opacity: 0 });
         const mostrar = (v: boolean) => gsap.to(topo, { opacity: v ? 1 : 0, duration: v ? 0.45 : 0.25, ease: 'power2.out', overwrite: true });
-        ScrollTrigger.create({ trigger: q('[data-logo]')[0], start: 'bottom top', onEnter: () => mostrar(true), onLeaveBack: () => mostrar(false) });
+        // Distância de scroll até o topo do logótipo chegar aos 80px (medida com a página no topo: a hero começa em 0).
+        const percurso = () => Math.max(1, logo.getBoundingClientRect().top + scrollY - 80);
+        gsap.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: el, start: 'top top', end: () => `+=${percurso()}`, scrub: true,
+          invalidateOnRefresh: true, onLeave: () => mostrar(true), onEnterBack: () => mostrar(false) } })
+          .to(q('[data-letra]'), { y: -40, opacity: 0, duration: 0.25, stagger: { amount: 0.12 } }, 0)
+          .to(q('[data-reguas]'), { scaleX: 0, transformOrigin: '50% 50%', duration: 0.3 }, 0)
+          .to(q('[data-contorno]'), { opacity: 1, duration: 0.08 }, 0.12)
+          .to(q('[data-emblema]'), { opacity: 0, duration: 0.25 }, 0.12)
+          .fromTo(q('[data-contorno] path'), { traco: '100%' }, { traco: '0%', duration: 0.5, stagger: { amount: 0.18, from: 'end' } }, 0.32)
+          .to(logo, { opacity: 0, duration: 0.12 }, 0.88);
         return;
       }
 
@@ -98,7 +133,7 @@ function Capa() {
   }, { scope: ref });
 
   return (
-    <section ref={ref} data-capa className="relative h-[180dvh] telefone:h-svh" aria-label="Início">
+    <section ref={ref} data-capa className="relative h-[180dvh] telefone:h-[var(--capa-altura,100svh)]" aria-label="Início">
       <h1 className="sr-only">Casas do Beco, alojamento local no Ladoeiro, Idanha-a-Nova</h1>
       <div className="sticky top-0 h-dvh overflow-hidden bg-creme text-cal telefone:relative telefone:h-full">
         <div data-quadro className="absolute inset-0 overflow-hidden bg-noite will-change-transform">
