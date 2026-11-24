@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTopo } from '../Estrutura';
 import { FaixaComoChegar } from '../ComoChegar';
@@ -51,6 +51,22 @@ function voo(logo: HTMLElement) {
 // O logótipo da abertura acaba exatamente aqui: mesmo tamanho, mesma posição, mesma cor.
 function Capa() {
   const ref = useRef<HTMLElement>(null);
+  // Telemóvel: a altura da hero fica presa em píxeis à altura do ecrã quando a página abre. No Chrome do iPhone
+  // (e em alguns Android) as unidades svh/dvh acompanham a barra do navegador a aparecer e a desaparecer em cada
+  // mudança de sentido do scroll; a hero mudava de altura e a pintura (object-cover) e o logótipo saltavam.
+  // Só volta a medir quando a largura muda (rodar o telemóvel), nunca por causa da barra.
+  useEffect(() => {
+    const el = ref.current!;
+    let largura = 0;
+    const fixar = () => {
+      if (innerWidth === largura) return;
+      largura = innerWidth;
+      el.style.setProperty('--capa-altura', `${innerHeight}px`);
+    };
+    fixar();
+    addEventListener('resize', fixar);
+    return () => { removeEventListener('resize', fixar); el.style.removeProperty('--capa-altura'); };
+  }, []);
   useAnimacao(() => {
     const el = ref.current!;
     const q = gsap.utils.selector(el);
@@ -117,7 +133,7 @@ function Capa() {
   }, { scope: ref });
 
   return (
-    <section ref={ref} data-capa className="relative h-[180dvh] telefone:h-svh" aria-label="Início">
+    <section ref={ref} data-capa className="relative h-[180dvh] telefone:h-[var(--capa-altura,100svh)]" aria-label="Início">
       <h1 className="sr-only">Casas do Beco, alojamento local no Ladoeiro, Idanha-a-Nova</h1>
       <div className="sticky top-0 h-dvh overflow-hidden bg-creme text-cal telefone:relative telefone:h-full">
         <div data-quadro className="absolute inset-0 overflow-hidden bg-noite will-change-transform">
