@@ -378,7 +378,8 @@ function Painel({ ponto, fechar }: { ponto: Ponto | null; fechar: () => void }) 
               {p.foto ? <div className="mb-5 aspect-[16/10] overflow-hidden rounded-[2px] bg-palha md:aspect-[4/3]"><Imagem foto={p.foto} sizes="24rem" className="h-full w-full object-cover" /></div>
                 : <FotoPorFazer nome={p.nome} className="mb-5 aspect-[16/10] md:aspect-[4/3]" />}
               <h2 className="titulo t-pequena pr-8">{p.nome}</h2>
-              <p className="mt-4 leading-relaxed">{p.texto}</p>
+              {/* 40px: os 16px de antes mais o lugar da antiga linha da categoria (20px + 4px), para o cartão manter a altura. */}
+              <p className="mt-10 leading-relaxed">{p.texto}</p>
             </div>
           </div>
         </>
