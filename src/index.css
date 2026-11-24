@@ -104,6 +104,16 @@
   .botao-pequeno { padding: 0.8rem 1.15rem; font-size: 0.72rem; }
   /* A mesma letra do botão Reservar do cabeçalho, para os botões Menu e Fechar ao lado dele. */
   .rotulo { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; line-height: 1; }
+  /* Mapa com o painel aberto (computador): o Reservar do cabeçalho fica por cima do bege e enche-se de verde. */
+  @media (min-width: 48rem) {
+    html[data-mapa-aberto] header .botao-claro { --b-cor: var(--color-musgo); --b-fundo: var(--color-creme); color: var(--b-fundo); }
+    html[data-mapa-aberto] header .botao-claro::before { transform: scaleX(1); }
+    html[data-mapa-aberto] header .botao-claro:hover, html[data-mapa-aberto] header .botao-claro:focus-visible { --b-cor: var(--color-noite); }
+    /* O botão Fechar do painel fica na linha do cabeçalho: a parte vazia do cabeçalho deixa passar o clique,
+       só o Menu, o emblema e o Reservar o apanham. */
+    html[data-mapa-aberto] header, html[data-mapa-aberto] header > div { pointer-events: none; }
+    html[data-mapa-aberto] header > div > * { pointer-events: auto; }
+  }
   /* Cheio (formulários, escolha feita): começa preenchido e, ao passar, recolhe para a direita. */
   .botao-cheio { color: var(--b-fundo); }
   .botao-cheio::before { transform: scaleX(1); transform-origin: right; }
