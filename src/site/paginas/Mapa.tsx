@@ -13,7 +13,8 @@ const ZOOM_PONTO = 1.35, ZOOM_MAX = 1.6;
 // Abrir e fechar um ponto: o painel e a câmara usam a mesma duração e a mesma curva, a começar no mesmo
 // fotograma. Assim o mapa desliza logo enquanto o painel entra, e a parte da câmara que passa além da
 // fotografia (folga) fica sempre escondida por baixo do painel, também a fechar.
-const VIAGEM = 1.2, CURVA = 'power3.out';
+// Fechar demora um pouco mais: o mapa recua até à aldeia inteira, um caminho maior do que aproximar.
+const VIAGEM = 1.2, VIAGEM_FECHO = 1.5, CURVA = 'power3.out';
 
 type Camara = { ir: (p: Ponto) => void; afastar: () => void };
 
@@ -106,11 +107,27 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
     // desenhá-la à escala certa, com o máximo de nitidez.
     const camada = (sim: boolean) => { m.style.willChange = sim ? 'transform' : 'auto'; };
     const parar = () => { viagem?.kill(); viagem = null; };
+    // As viagens animam o que se vê no ecrã (deslocamento da imagem e escala), entre dois enquadramentos já
+    // dentro dos limites. Os limites são lineares nestes valores, por isso cada fotograma intermédio também
+    // cabe e nada é empurrado a meio do caminho. Antes animava-se o centro e a escala em separado; ao afastar,
+    // o limite ia corrigindo a imagem a cada fotograma e o mapa recuava aos solavancos, com um eixo a chegar
+    // muito antes do outro.
+    type Vista = { x: number; y: number; s: number; folga: number; folgaX: number };
+    const vistaAtual = (): Vista => ({ x: W() / 2 - cam.cx * cam.s, y: H() / 2 - cam.cy * cam.s, s: cam.s, folga: cam.folga, folgaX: cam.folgaX });
+    const aplicar = (e: Vista) => {
+      Object.assign(cam, { s: e.s, cx: (W() / 2 - e.x) / e.s, cy: (H() / 2 - e.y) / e.s, folga: e.folga, folgaX: e.folgaX });
+      desenhar();
+    };
     const voar = (cx: number, cy: number, s: number, duracao: number, ease = 'power3.inOut', folga = cam.folga, folgaX = cam.folgaX) => {
       parar();
-      if (semMovimento()) { Object.assign(cam, { cx, cy, s, folga, folgaX }); desenhar(); return; }
+      const antes = { ...cam };
+      Object.assign(cam, { cx, cy, s, folga, folgaX }); limitar();
+      const fim = vistaAtual();
+      Object.assign(cam, antes);
+      if (semMovimento()) { aplicar(fim); return; }
       camada(true);
-      viagem = gsap.to(cam, { cx, cy, s, folga, folgaX, duration: duracao, ease, onUpdate: desenhar, onComplete: () => { viagem = null; camada(false); } });
+      const e = vistaAtual();
+      viagem = gsap.to(e, { ...fim, duration: duracao, ease, onUpdate: () => aplicar(e), onComplete: () => { viagem = null; camada(false); } });
     };
     // No computador o ponto fica à esquerda do painel. No telemóvel fica a meio do espaço livre entre o
     // cabeçalho e o cartão, medido depois de o cartão mostrar o novo ponto.
@@ -130,7 +147,7 @@ function Visor({ ativo, escolher, ligar }: { ativo: Ponto | null; escolher: (p: 
         voar(p.x, p.y + (H() / 2 - alvoY) / s, s, VIAGEM, CURVA, tapado, 0);
       });
     };
-    const afastar = () => { afastado = true; voar(cam.cx, cam.cy, minS(), VIAGEM, CURVA, 0, 0); };
+    const afastar = () => { afastado = true; voar(cam.cx, cam.cy, minS(), VIAGEM_FECHO, CURVA, 0, 0); };
     ligar({ ir, afastar });
     api.current.zoom = k => {
       afastado = false;
@@ -287,7 +304,7 @@ function Painel({ ponto, fechar }: { ponto: Ponto | null; fechar: () => void }) 
     const el = caixa.current!;
     gsap.killTweensOf(el);
     if (semMovimento()) gsap.set(el, { '--p': aberto ? 1 : 0 });
-    else gsap.to(el, { '--p': aberto ? 1 : 0, duration: VIAGEM, ease: CURVA });
+    else gsap.to(el, { '--p': aberto ? 1 : 0, duration: aberto ? VIAGEM : VIAGEM_FECHO, ease: CURVA });
   }, [aberto]);
   const p = ponto ?? mostrado;
   return (
@@ -296,7 +313,10 @@ function Painel({ ponto, fechar }: { ponto: Ponto | null; fechar: () => void }) 
       className="absolute inset-x-0 bottom-0 z-10 flex max-h-[70svh] flex-col overflow-hidden rounded-t-[4px] bg-creme text-terra shadow-[0_-20px_50px_-20px_rgb(0_0_0/calc(0.5*var(--p)))] [transform:translateY(calc((1-var(--p))*100%))] md:inset-y-0 md:left-auto md:max-h-none md:w-[24rem] md:rounded-none md:shadow-[-30px_0_60px_-20px_rgb(0_0_0/calc(0.5*var(--p)))] md:[transform:translateX(calc((1-var(--p))*100%))]">
       {p && (
         <>
-          <button type="button" onClick={fechar} aria-label="Fechar" className="absolute right-3 top-3 z-10 grid size-10 place-items-center bg-creme/90 hover:bg-palha md:right-8 md:top-24"><X size={20} aria-hidden /></button>
+          {/* Telemóvel de pé: no canto da fotografia. Painel lateral: na linha do Reservar, alinhado com a margem
+              do texto, com a mesma moldura fina. Em ambos enche de verde ao passar. */}
+          <button type="button" onClick={fechar} aria-label="Fechar"
+            className="absolute right-3 top-3 z-10 grid size-10 place-items-center bg-creme/90 text-terra transition-colors duration-300 hover:bg-musgo hover:text-creme focus-visible:bg-musgo focus-visible:text-creme md:left-8 md:right-auto md:top-3 md:border md:border-musgo/35 md:bg-transparent md:text-musgo md:hover:border-musgo md:hover:bg-musgo md:hover:text-creme"><X size={20} strokeWidth={1.5} aria-hidden /></button>
           {/* A margem fica num bloco interior: no fim do texto há sempre o mesmo espaço que dos lados, mesmo quando o painel tem de deslizar. */}
           <div data-cartao className="min-h-0 overflow-y-auto overscroll-contain">
             <div className="p-6 md:px-8 md:pb-36 md:pt-24">
