@@ -11,9 +11,10 @@ const ruas = (ficheiro: string): CSSProperties => {
   return { maskImage: url, WebkitMaskImage: url, maskSize: 'cover', WebkitMaskSize: 'cover', maskPosition: 'center', WebkitMaskPosition: 'center', maskRepeat: 'no-repeat', WebkitMaskRepeat: 'no-repeat' };
 };
 
-function Pino({ altura, cor }: { altura: string; cor: string }) {
+// entra: o pino cai com o scroll (faixa da página inicial); o do postal está sempre lá, sem animação.
+function Pino({ altura, cor, entra = false }: { altura: string; cor: string; entra?: boolean }) {
   return (
-    <span data-pino className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full ${cor}`}>
+    <span data-pino data-pino-entra={entra || undefined} className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full ${cor}`}>
       <span className="absolute -bottom-1.5 left-1/2 block size-3 -translate-x-1/2 animate-ping rounded-full border border-current opacity-70 motion-reduce:hidden" aria-hidden />
       <PinoCasa className={`relative block w-auto drop-shadow-[0_6px_10px_rgb(0_0_0/0.35)] ${altura}`} />
     </span>
@@ -27,16 +28,18 @@ export function FaixaComoChegar() {
     if (semMovimento()) return;
     const el = ref.current!;
     gsap.fromTo(el.querySelector('[data-ruas]'), { scale: 1.12 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: true } });
+    // O pronto vem antes do gsap.from: o from lê o estado final (opacidade 1) do estilo atual, e enquanto não há
+    // pronto o CSS (html.anima) tem o pino a 0; ao contrário, o pino caía de invisível para invisível.
     const pino = el.querySelector<HTMLElement>('[data-pino]')!;
-    gsap.from(pino, { yPercent: -160, opacity: 0, duration: 1.1, ease: 'bounce.out', scrollTrigger: { trigger: el, start: 'top 70%' } });
     pino.dataset.pronto = '';
+    gsap.from(pino, { yPercent: -160, opacity: 0, duration: 1.1, ease: 'bounce.out', scrollTrigger: { trigger: el, start: 'top 70%' } });
   }, { scope: ref });
 
   return (
     <section ref={ref} aria-label="Como chegar" className="relative h-[30rem] overflow-hidden bg-noite text-creme sm:h-[26rem] lg:h-[28rem]">
       <div data-ruas className="absolute inset-0 bg-creme/40" style={ruas('ruas-faixa.svg')} aria-hidden />
       <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-noite via-noite/70 to-transparent" aria-hidden />
-      <Pino altura="h-16 lg:h-20" cor="text-creme" />
+      <Pino altura="h-16 lg:h-20" cor="text-creme" entra />
       <div className="contentor absolute inset-x-0 bottom-0 flex flex-col gap-6 pb-8 sm:flex-row sm:items-end sm:justify-between lg:pb-12">
         <div>
           <Linhas as="h2" className="titulo t-media">Ladoeiro, <em>Beira Baixa.</em></Linhas>
