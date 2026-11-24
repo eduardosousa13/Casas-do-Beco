@@ -62,29 +62,29 @@ export const contactos = {
 
 // Pontos do mapa, em píxeis da imagem aérea (1774 × 887), pela ordem e nas posições que o Eduardo marcou
 // (imagem de referência "satelite-mapa - cópia.png", a 07/11/2026; pontos 10 e 11 a 08/11/2026).
-export type Ponto = { id: string; x: number; y: number; nome: string; tipo: string; texto: string; foto?: Foto };
+export type Ponto = { id: string; x: number; y: number; nome: string; texto: string; foto?: Foto };
 export const pontos: Ponto[] = [
-  { id: 'casa', x: 1150, y: 383, nome: 'Casas do Beco', tipo: 'A nossa casa', foto: fotos.fachada,
+  { id: 'casa', x: 1150, y: 383, nome: 'Casas do Beco', foto: fotos.fachada,
     texto: 'Numa rua sossegada da aldeia. É daqui que se parte a pé para tudo o resto.' },
-  { id: 'fonte', x: 601, y: 391, nome: 'Fonte Grande D. Sebastião', tipo: 'Património', foto: fotos.fonte,
+  { id: 'fonte', x: 601, y: 391, nome: 'Fonte Grande D. Sebastião', foto: fotos.fonte,
     texto: 'Fonte de granito de 1571, do tempo de D. Sebastião, com a coroa e o brasão real esculpidos e o tanque à frente.' },
-  { id: 'largo', x: 588, y: 446, nome: 'Largo do Cruzeiro do Ladoeiro', tipo: 'Centro da aldeia', foto: fotos.largo,
+  { id: 'largo', x: 588, y: 446, nome: 'Largo do Cruzeiro do Ladoeiro', foto: fotos.largo,
     texto: 'O pinheiro manso, o cruzeiro e a esplanada à sombra da laranjeira, mesmo ao lado da Fonte Grande.' },
-  { id: 'casa-santos', x: 100, y: 407, nome: 'Casa Santos', tipo: 'Comércio local', foto: fotos.casaSantos,
+  { id: 'casa-santos', x: 100, y: 407, nome: 'Casa Santos', foto: fotos.casaSantos,
     texto: 'A loja da aldeia: drogaria, gás e um pouco de tudo o que faz falta numa casa.' },
-  { id: 'capela', x: 19, y: 475, nome: 'Capela do Espírito Santo', tipo: 'Património', foto: fotos.capela,
+  { id: 'capela', x: 19, y: 475, nome: 'Capela do Espírito Santo', foto: fotos.capela,
     texto: 'Pequena capela caiada, com cantaria de granito e a data de 1883 gravada na fachada, rodeada de oliveiras antigas.' },
-  { id: 'igreja', x: 974, y: 356, nome: 'Igreja Matriz do Ladoeiro', tipo: 'Património', foto: fotos.igreja,
+  { id: 'igreja', x: 974, y: 356, nome: 'Igreja Matriz do Ladoeiro', foto: fotos.igreja,
     texto: 'A igreja principal da aldeia, com a torre do sino e do relógio, cantaria de granito e o adro rodeado de oliveiras.' },
-  { id: 'piscina', x: 1465, y: 242, nome: 'Piscina Municipal do Ladoeiro', tipo: 'No verão', foto: fotos.piscina,
+  { id: 'piscina', x: 1465, y: 242, nome: 'Piscina Municipal do Ladoeiro', foto: fotos.piscina,
     texto: 'Piscina ao ar livre, com toldos e espreguiçadeiras, para os dias de calor da Beira Baixa.' },
-  { id: 'palco', x: 522, y: 291, nome: 'Palco Multiusos', tipo: 'Festas e espetáculos', foto: fotos.palco,
+  { id: 'palco', x: 522, y: 291, nome: 'Palco Multiusos', foto: fotos.palco,
     texto: 'O palco coberto da aldeia, junto ao Centro de Recreio, num recinto largo onde se juntam as festas.' },
-  { id: 'festival', x: 1309, y: 251, nome: 'Festival da Melancia', tipo: 'No verão', foto: fotos.festival,
+  { id: 'festival', x: 1309, y: 251, nome: 'Festival da Melancia', foto: fotos.festival,
     texto: 'O recinto onde a aldeia celebra a melancia do Ladoeiro, com bancas, música e muita fruta.' },
-  { id: 'ribeiro', x: 495, y: 546, nome: 'Ribeiro das Lajes', tipo: 'Património', foto: fotos.ribeiro,
+  { id: 'ribeiro', x: 495, y: 546, nome: 'Ribeiro das Lajes', foto: fotos.ribeiro,
     texto: 'Era aqui que noutros tempos se lavava a roupa. Ficaram as pedras, o tanque e a água corrente, num recanto fresco à sombra das árvores.' },
-  { id: 'chafariz', x: 498, y: 347, nome: 'Chafariz Novo', tipo: 'Património', foto: fotos.chafariz,
+  { id: 'chafariz', x: 498, y: 347, nome: 'Chafariz Novo', foto: fotos.chafariz,
     texto: 'Chafariz caiado com o arco pintado de laranja, junto ao recinto do Palco Multiusos, à beira dos olivais.' },
 ];
 

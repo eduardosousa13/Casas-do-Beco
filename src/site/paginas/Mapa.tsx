@@ -67,7 +67,6 @@ export default function Mapa() {
                 {p.foto ? <Revela foto={p.foto} sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw" className="aspect-[4/3] rounded-[2px]" />
                   : <FotoPorFazer nome={p.nome} className="aspect-[4/3]" />}
                 <h3 className="titulo t-pequena mt-6">{p.nome}</h3>
-                <p className="mt-1 text-sm font-medium text-musgo">{p.tipo}</p>
                 <p className="mt-3 text-terra/85">{p.texto}</p>
                 <button type="button" onClick={() => { escolher(p); irPara(0, true); }}
                   className="mt-4 text-sm font-medium underline underline-offset-4 hover:text-musgo">Ver no mapa</button>
@@ -379,7 +378,6 @@ function Painel({ ponto, fechar }: { ponto: Ponto | null; fechar: () => void }) 
               {p.foto ? <div className="mb-5 aspect-[16/10] overflow-hidden rounded-[2px] bg-palha md:aspect-[4/3]"><Imagem foto={p.foto} sizes="24rem" className="h-full w-full object-cover" /></div>
                 : <FotoPorFazer nome={p.nome} className="mb-5 aspect-[16/10] md:aspect-[4/3]" />}
               <h2 className="titulo t-pequena pr-8">{p.nome}</h2>
-              <p className="mt-1 text-sm font-medium text-musgo">{p.tipo}</p>
               <p className="mt-4 leading-relaxed">{p.texto}</p>
             </div>
           </div>
