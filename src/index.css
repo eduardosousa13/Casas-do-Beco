@@ -102,6 +102,8 @@
   .botao:hover svg { transform: translateX(4px); }
   .botao-claro { --b-cor: var(--color-creme); --b-fundo: var(--color-noite); }
   .botao-pequeno { padding: 0.8rem 1.15rem; font-size: 0.72rem; }
+  /* A mesma letra do botão Reservar do cabeçalho, para os botões Menu e Fechar ao lado dele. */
+  .rotulo { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; line-height: 1; }
   /* Cheio (formulários, escolha feita): começa preenchido e, ao passar, recolhe para a direita. */
   .botao-cheio { color: var(--b-fundo); }
   .botao-cheio::before { transform: scaleX(1); transform-origin: right; }
