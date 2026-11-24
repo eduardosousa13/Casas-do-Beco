@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { cheio, emblema, TRANSFORMA, VISTA_EMBLEMA } from './logotipo';
 export { Emblema, Logo, PinoCasa } from './Logo';
-import { brasao, brasaoTraco, TRANSFORMA_BRASAO, VISTA_BRASAO } from './brasao';
+import { brasao, brasaoTraco, listel, TRANSFORMA_BRASAO, VISTA_BRASAO } from './brasao';
 import { gsap, ScrollTrigger, semMovimento, useAnimacao } from './kit';
 
 // O emblema a desenhar-se com o scroll, como na abertura: primeiro o traço, depois o cheio.
@@ -26,7 +26,7 @@ export function EmblemaDesenhado({ className = '', inicio = 'top 80%', fim = 'bo
 }
 
 // O brasão do Ladoeiro com a mesma ideia do emblema: os contornos principais desenham-se de cima para baixo
-// e depois entra o cheio, limpo (os traços saem). Corre sozinho, em 1,9 s, assim que o brasão entra no ecrã,
+// e o listel, e depois entra o cheio, limpo (os traços saem; o listel fica). Corre sozinho, em 1,9 s, assim que o brasão entra no ecrã,
 // por isso acaba sempre enquanto ainda se vê, seja qual for a velocidade do scroll.
 export function BrasaoDesenhado({ className = '', inicio = 'top 85%' }: { className?: string; inicio?: string }) {
   const ref = useRef<SVGSVGElement>(null);
@@ -36,6 +36,7 @@ export function BrasaoDesenhado({ className = '', inicio = 'top 85%' }: { classN
     const tl = gsap.timeline({ paused: true })
       .fromTo(ref.current.querySelectorAll('.tracos path'), { traco: '0%' }, { traco: '100%', duration: 1.1, ease: 'power2.inOut', stagger: { amount: 0.45 } })
       .fromTo(cheio, { opacity: 0 }, { opacity: 1, duration: 0.7, ease: 'power1.inOut' }, 1.05)
+      .fromTo(ref.current.querySelectorAll('.listel path'), { traco: '0%' }, { traco: '100%', duration: 1, ease: 'power2.inOut', stagger: { amount: 0.3 } }, 0.35)
       .to(tracos, { opacity: 0, duration: 0.5, ease: 'power1.in' }, 1.4);
     ScrollTrigger.create({ trigger: ref.current, start: inicio, once: true, onEnter: () => tl.play() });
   }, { scope: ref });
@@ -46,6 +47,10 @@ export function BrasaoDesenhado({ className = '', inicio = 'top 85%' }: { classN
           {brasaoTraco.map((d, i) => <path key={i} d={d} />)}
         </g>
         <g className="cheio" fill="currentColor">{brasao.map((d, i) => <path key={i} d={d} />)}</g>
+      </g>
+      {/* O listel desenha-se com o resto e fica: no brasão é só contorno. */}
+      <g className="listel" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        {listel.map((d, i) => <path key={i} d={d} />)}
       </g>
     </svg>
   );
