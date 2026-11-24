@@ -105,14 +105,14 @@ export function Acende({ as: T = 'p', className = '', children }: { as?: Element
 }
 
 // Fotografia com AVIF e JPEG nos dois tamanhos.
-export function Imagem({ foto, sizes = '100vw', className = '', prioridade = false, style }: { foto: Foto; sizes?: string; className?: string; prioridade?: boolean; style?: React.CSSProperties }) {
+export function Imagem({ foto, sizes = '100vw', className = '', prioridade = false, style, carregou }: { foto: Foto; sizes?: string; className?: string; prioridade?: boolean; style?: React.CSSProperties; carregou?: () => void }) {
   const s = fontes(foto);
   return (
     <picture>
       <source type="image/avif" srcSet={s.avif} sizes={sizes} />
       <img src={s.src} srcSet={s.jpg} sizes={sizes} alt={foto.alt} width={foto.l} height={foto.a}
         loading={prioridade ? 'eager' : 'lazy'} fetchPriority={prioridade ? 'high' : undefined} decoding="async"
-        className={className} style={{ objectPosition: foto.posicao, ...style }} />
+        className={className} style={{ objectPosition: foto.posicao, ...style }} onLoad={carregou} onError={carregou} />
     </picture>
   );
 }

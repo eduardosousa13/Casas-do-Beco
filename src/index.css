@@ -52,6 +52,9 @@
   h1, h2, h3 { text-wrap: balance; }
   p { text-wrap: pretty; }
   input, select, textarea, button { font: inherit; color: inherit; }
+  /* O Tailwind 4 deixa os botões com o cursor normal; aqui todo o botão clicável mostra a mão, como os links.
+     Fica na camada base, por isso uma classe cursor-* num botão continua a mandar. */
+  button:not(:disabled), [role="button"]:not([aria-disabled="true"]) { cursor: pointer; }
   input::placeholder, textarea::placeholder { color: color-mix(in srgb, currentColor 80%, transparent); }
 
   /* Barra de scroll na cor da terra, fina. */
@@ -122,6 +125,15 @@
   @media (min-width: 640px) { .contentor { padding-inline: 2rem; } }
   @media (min-width: 1280px) { .contentor { padding-inline: 3.5rem; } }
 }
+
+/* Círculo de carregamento do visor de fotografias: fino, cor de cal, e só aparece depois de 250 ms. */
+.a-carregar {
+  width: 2.25rem; height: 2.25rem; border-radius: 9999px;
+  border: 1.5px solid color-mix(in srgb, var(--color-creme) 22%, transparent); border-top-color: var(--color-creme);
+  animation: a-carregar-roda 0.9s linear infinite, a-carregar-entra 0.3s ease 0.25s both;
+}
+@keyframes a-carregar-roda { to { transform: rotate(1turn); } }
+@keyframes a-carregar-entra { from { opacity: 0; } }
 
 /* Linhas do SplitText: a máscara corta a linha enquanto sobe. */
 .linha-mascara { padding-bottom: 0.08em; margin-bottom: -0.08em; }
